@@ -1,0 +1,95 @@
+import type { QuoteSuccess } from "@/lib/flights/types";
+import { ticketNumberFromPolicyId } from "./keys";
+import type { Configure, Hex, Outcome, PolicyId, PolicyStatus, StubProduct, TicketStatus } from "./types";
+
+export type Policy = {
+  policyId: PolicyId;
+  ticketNumber: string;
+  flightKey: string;
+  humanKey: Hex;
+  product: StubProduct;
+  configure: Configure;
+  /** Internal τ. Same number as configure.minutesLate. */
+  tauMinutes: number;
+  premiumCents: number;
+  payoutCents: number;
+  scheduledArrival: string;
+  cutoffAt: string;
+  status: PolicyStatus;
+  outcome?: Outcome;
+  snapshotHash?: Hex;
+  observedDelayMinutes?: number;
+  ledgerTx?: string;
+  hederaTxId?: string;
+  openedAt: string;
+  settledAt?: string;
+};
+
+export type TicketIssueRequest = {
+  flightKey: string;
+  worldSession: string;
+  configure?: Configure;
+};
+
+export type TicketIssueSuccess = {
+  ok: true;
+  policy: Policy;
+  ticketNumber: string;
+  potBalanceCents: number;
+};
+
+export type TicketIssueRefusal = {
+  ok: false;
+  status: "NOT_ISSUED";
+  refusal: "HOT" | "CUTOFF" | "NOT_FOUND" | "FULL" | "DUPLICATE" | "UNVERIFIED";
+  title: string;
+  reason: string;
+  detail: string;
+  flightKey?: string;
+  existingPolicyId?: string;
+};
+
+export type TicketIssueResult = TicketIssueSuccess | TicketIssueRefusal;
+
+export function policyFromQuote(
+  quote: QuoteSuccess & { product?: StubProduct; configure?: Configure; premiumCents?: number; payoutCents?: number },
+  args: {
+    policyId: PolicyId;
+    humanKey: Hex;
+    now?: Date;
+    cutoffAt: string;
+  },
+): Policy {
+  const configure = quote.configure ?? {
+    product: quote.product ?? "arrival",
+    minutesLate: (quote.tauMinutes === 30 || quote.tauMinutes === 45 || quote.tauMinutes === 60
+      ? quote.tauMinutes
+      : 60) as 30 | 45 | 60,
+  };
+  const premiumCents = quote.premiumCents ?? Math.round(quote.premium * 100);
+  const payoutCents = quote.payoutCents ?? Math.round(quote.maxPayout * 100);
+
+  return {
+    policyId: args.policyId,
+    ticketNumber: ticketNumberFromPolicyId(args.policyId),
+    flightKey: quote.flightKey,
+    humanKey: args.humanKey,
+    product: configure.product,
+    configure,
+    tauMinutes: configure.minutesLate,
+    premiumCents,
+    payoutCents,
+    scheduledArrival: quote.flight.scheduledArrival,
+    cutoffAt: args.cutoffAt,
+    status: "OPEN",
+    openedAt: (args.now ?? new Date()).toISOString(),
+  };
+}
+
+export function travelerStatus(policy: Policy | null | undefined): TicketStatus {
+  if (!policy) return "NOT_ISSUED";
+  if (policy.status === "VOID") return "NOT_ISSUED";
+  if (policy.status === "OPEN") return "OPEN";
+  if (policy.status === "PAID") return "PAID";
+  return "EXPIRED";
+}

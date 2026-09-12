@@ -1,0 +1,40 @@
+import { LookupForm, type DemoChip } from "@/components/lookup-form";
+import { SiteShell } from "@/components/site-shell";
+import { listFixtures } from "@/lib/flights/fixtures";
+
+export const dynamic = "force-dynamic";
+
+const HINTS: Record<DemoChip["kind"], string> = {
+  hot: "Already a mess — should refuse",
+  cutoff: "Too close to departure",
+  clean: "Healthy estimate — should quote",
+};
+
+export default function HomePage() {
+  const fixtures = listFixtures();
+  const order: DemoChip["kind"][] = ["hot", "cutoff", "clean"];
+  const demos: DemoChip[] = order
+    .map((kind) => fixtures.find((fixture) => fixture.kind === kind))
+    .filter((fixture): fixture is NonNullable<typeof fixture> => Boolean(fixture))
+    .map((fixture) => ({
+      kind: fixture.kind,
+      label: `${fixture.snapshot.carrier} ${fixture.snapshot.flightNumber} · ${fixture.snapshot.origin}`,
+      hint: HINTS[fixture.kind],
+      flightKey: fixture.flightKey,
+      carrier: fixture.snapshot.carrier,
+      flightNumber: fixture.snapshot.flightNumber,
+      serviceDate: fixture.snapshot.serviceDate,
+      origin: fixture.snapshot.origin,
+    }));
+
+  return (
+    <SiteShell>
+      <p className="mb-6 font-serif text-[16px] leading-6 text-ink/70">
+        Look up a flight. If we can still write a ticket, you&apos;ll see one
+        number to pay and one number you get if the plane misses the gate by
+        more than an hour.
+      </p>
+      <LookupForm demos={demos} />
+    </SiteShell>
+  );
+}
