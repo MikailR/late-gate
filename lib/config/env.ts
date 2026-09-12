@@ -3,6 +3,11 @@
  * Never reuse a Hedera key as a pot credential or the reverse.
  */
 
+import {
+  DEFAULT_MAX_OPEN_PER_FLIGHT,
+  DEMO_MAX_OPEN_PER_FLIGHT,
+} from "@/lib/pricing/constants";
+
 export type FlightDataMode = "demo" | "live";
 
 function read(name: string): string | undefined {
@@ -35,12 +40,14 @@ export type HumanTillEnv = {
 
 export function humanTillEnv(): HumanTillEnv {
   const grant = Number(read("DEMO_POT_GRANT_CENTS") ?? "5000");
-  const cap = Number(read("HOUSE_MAX_OPEN_PER_FLIGHT") ?? "5");
+  const demo = flag("DEMO_MODE", true);
+  const fallback = demo ? DEMO_MAX_OPEN_PER_FLIGHT : DEFAULT_MAX_OPEN_PER_FLIGHT;
+  const cap = Number(read("HOUSE_MAX_OPEN_PER_FLIGHT") ?? String(fallback));
   return {
     upstashUrl: read("UPSTASH_REDIS_REST_URL"),
     upstashToken: read("UPSTASH_REDIS_REST_TOKEN"),
     demoGrantCents: Number.isFinite(grant) && grant > 0 ? Math.round(grant) : 5_000,
-    houseMaxOpenPerFlight: Number.isFinite(cap) && cap > 0 ? Math.round(cap) : 5,
+    houseMaxOpenPerFlight: Number.isFinite(cap) && cap > 0 ? Math.round(cap) : fallback,
   };
 }
 

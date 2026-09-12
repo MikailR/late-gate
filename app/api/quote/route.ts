@@ -1,5 +1,6 @@
 import { parseQuoteInput } from "@/lib/quote-request";
 import { quoteFlight } from "@/lib/pricing/quote";
+import { cutoffHours } from "@/lib/pricing/underwrite";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
         reason: "Need a two-letter carrier, a flight number, and a service date.",
         detail: "Origin is optional. Example: UA 472 on 2026-09-12 out of EWR.",
         tauMinutes: 60,
-        cutoffHours: 8,
+        cutoffHours: cutoffHours(),
       },
       { status: 400 },
     );

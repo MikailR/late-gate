@@ -1,12 +1,13 @@
 import { buildFlightKey } from "@/lib/flights/flight-key";
 import type { FlightQuery, FlightSnapshot, QuoteRefusal } from "@/lib/flights/types";
 import { addHours, formatClock, formatDelay } from "@/lib/time";
-import { CUTOFF_HOURS } from "@/lib/pricing/constants";
+import { cutoffHours } from "@/lib/pricing/underwrite";
 import type { MinutesLate } from "./types";
 
 /**
- * Day-1 codes plus the three rails refusals.
- * On-chain `uint8` order is fixed: HOT, CUTOFF, NOT_FOUND, FULL, DUPLICATE, UNVERIFIED.
+ * Day-1 codes plus rails refusals.
+ * On-chain `uint8` order is fixed for the first six: HOT, CUTOFF, NOT_FOUND, FULL, DUPLICATE, UNVERIFIED.
+ * UNDERWRITE_REJECT and EXPOSURE_CAP append after that (off-chain first).
  * // status: implemented (copy + codes). Ledger write of refusals is stubbed in lib/ledger.
  */
 export const REFUSAL_CODES = [
@@ -16,6 +17,8 @@ export const REFUSAL_CODES = [
   "FULL",
   "DUPLICATE",
   "UNVERIFIED",
+  "UNDERWRITE_REJECT",
+  "EXPOSURE_CAP",
 ] as const;
 
 export type RefusalCode = (typeof REFUSAL_CODES)[number];
@@ -27,6 +30,8 @@ export const REFUSAL_ONCHAIN: Record<RefusalCode, number> = {
   FULL: 3,
   DUPLICATE: 4,
   UNVERIFIED: 5,
+  UNDERWRITE_REJECT: 6,
+  EXPOSURE_CAP: 7,
 };
 
 export function isRefusalCode(value: unknown): value is RefusalCode {
@@ -47,7 +52,7 @@ function withFlightKey(flight: FlightSnapshot): string {
 }
 
 function base(tauMinutes: number): Pick<QuoteRefusal, "ok" | "tauMinutes" | "cutoffHours"> {
-  return { ok: false, tauMinutes, cutoffHours: CUTOFF_HOURS };
+  return { ok: false, tauMinutes, cutoffHours: cutoffHours() };
 }
 
 /** Day-1 HOT copy. Live estimate already ≥ τ. */
@@ -65,14 +70,15 @@ export function refuseHot(flight: FlightSnapshot, tauMinutes: number): QuoteRefu
   };
 }
 
-/** Day-1 CUTOFF copy. Now is past scheduled departure − 8h. */
+/** CUTOFF copy. Now is past scheduled departure − cutoffHours() (demo 6h; Day-1 was 8h). */
 export function refuseCutoff(flight: FlightSnapshot, tauMinutes: number): QuoteRefusal {
-  const cutoffAt = addHours(new Date(flight.scheduledDeparture), -CUTOFF_HOURS);
+  const hours = cutoffHours();
+  const cutoffAt = addHours(new Date(flight.scheduledDeparture), -hours);
   return {
     ...base(tauMinutes),
     refusal: "CUTOFF",
     title: "The window is closed.",
-    reason: `${flightLabel(flight)} leaves ${flight.origin} at ${formatClock(flight.scheduledDeparture, flight.timeZone)}. Tickets stop ${CUTOFF_HOURS} hours before departure — that was ${formatClock(cutoffAt.toISOString(), flight.timeZone)}.`,
+    reason: `${flightLabel(flight)} leaves ${flight.origin} at ${formatClock(flight.scheduledDeparture, flight.timeZone)}. Tickets stop ${hours} hours before departure — that was ${formatClock(cutoffAt.toISOString(), flight.timeZone)}.`,
     detail:
       "Come earlier next time. After the cutoff, lateness is no longer something you can still be on the right side of.",
     flightKey: withFlightKey(flight),
@@ -126,6 +132,38 @@ export function refuseDuplicate(
   };
 }
 
+/**
+ * Flight-level p_hat is above the listing cap for this product × minutesLate.
+ * Traveler stamp is NOT ISSUED. Do not say insurance / odds / lambda.
+ */
+export function refuseUnderwrite(flight: FlightSnapshot, tauMinutes: number): QuoteRefusal {
+  return {
+    ...base(tauMinutes),
+    refusal: "UNDERWRITE_REJECT",
+    title: "We are not writing this one.",
+    reason: `The desk will not write ${flightLabel(flight)} at a ${tauMinutes}-minute miss — the delay prior is too high.`,
+    detail: "Pick a different flight. We only write a stub when the board still looks like a miss we can stand behind.",
+    flightKey: withFlightKey(flight),
+    flight,
+  };
+}
+
+/**
+ * Portfolio / cluster cap. Copy only — the route check is TODO.
+ * // status: implemented (copy). Enforcement is constants-only until Studio exposure.
+ */
+export function refuseExposureCap(flight: FlightSnapshot, tauMinutes: number): QuoteRefusal {
+  return {
+    ...base(tauMinutes),
+    refusal: "EXPOSURE_CAP",
+    title: "The book is at its line.",
+    reason: `The desk is already carrying as much as it will on flights like ${flightLabel(flight)}.`,
+    detail: "Try another airport or come back tomorrow.",
+    flightKey: withFlightKey(flight),
+    flight,
+  };
+}
+
 /** Selfie / World proof failed or session missing. Eligibility, not a chain error. */
 export function refuseUnverified(tauMinutes: MinutesLate | number, flightKey?: string): QuoteRefusal {
   return {
@@ -149,7 +187,7 @@ export const REFUSAL_COPY: Record<RefusalCode, RefusalCopy> = {
   },
   CUTOFF: {
     title: "The window is closed.",
-    reason: "Tickets stop eight hours before departure.",
+    reason: "Tickets stop before departure.",
     detail:
       "Come earlier next time. After the cutoff, lateness is no longer something you can still be on the right side of.",
   },
@@ -173,5 +211,15 @@ export const REFUSAL_COPY: Record<RefusalCode, RefusalCopy> = {
     title: "Couldn't confirm it's you.",
     reason: "The gate check did not come back.",
     detail: "We only write a ticket after we know one person is buying this flight once.",
+  },
+  UNDERWRITE_REJECT: {
+    title: "We are not writing this one.",
+    reason: "The delay prior is too high for this miss.",
+    detail: "Pick a different flight. We only write a stub when the board still looks like a miss we can stand behind.",
+  },
+  EXPOSURE_CAP: {
+    title: "The book is at its line.",
+    reason: "The desk is already carrying as much as it will on this cluster.",
+    detail: "Try another airport or come back tomorrow.",
   },
 };

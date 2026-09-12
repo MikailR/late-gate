@@ -4,10 +4,17 @@ import { getFixtureByKind } from "@/lib/flights/fixtures";
 import { toFlightQuery } from "@/lib/flights/flight-key";
 import { quoteFlight, quoteSnapshot } from "./quote";
 import { quoteFlight as day1QuoteFlight } from "@/lib/pricing/quote";
+import {
+  CLEAN_DEMO_PRIOR_BY_MINUTES_LATE,
+  P_MAX_AT_TARGET_LAMBDA,
+  TARGET_LAMBDA,
+} from "@/lib/pricing/constants";
+import { exceedsUnderwriteCap, houseEvUsd, pHatFor, pMaxFor } from "@/lib/pricing/underwrite";
 import { applyCredit, applyDebit, dollarsToCents, emptyPot } from "./pot";
 import { decideSettlement } from "./observe";
 import { humanKeyFromNullifier, ticketNumberFromPolicyId } from "./keys";
 import { travelerStatus } from "./policy";
+import { REFUSAL_CODES, REFUSAL_COPY } from "./refusal";
 
 const frozen = new Date("2026-09-12T16:00:00.000Z");
 
@@ -87,6 +94,16 @@ describe("quoteFlight Day-1 paths", () => {
     if (!day1.ok) return;
     assert.equal(day1.premium, 9);
     assert.equal(day1.maxPayout, 100);
+
+    assert.equal(arrival30.p, CLEAN_DEMO_PRIOR_BY_MINUTES_LATE[30]);
+    assert.equal(arrival45.p, CLEAN_DEMO_PRIOR_BY_MINUTES_LATE[45]);
+    assert.equal(takeoff60.p, CLEAN_DEMO_PRIOR_BY_MINUTES_LATE[60]);
+    assert.equal(houseEvUsd("takeoff", 30, 0.08), 6);
+    assert.equal(houseEvUsd("takeoff", 45, 0.05), 6.5);
+    assert.equal(houseEvUsd("takeoff", 60, 0.035), 7);
+    assert.equal(houseEvUsd("arrival", 30, 0.08), 1);
+    assert.equal(houseEvUsd("arrival", 45, 0.05), 1.5);
+    assert.equal(houseEvUsd("arrival", 60, 0.035), 2);
   });
 
   it("refuses HOT then CUTOFF then NOT_FOUND", () => {
@@ -134,6 +151,68 @@ describe("quoteFlight Day-1 paths", () => {
     assert.equal(quote.ok, false);
     if (quote.ok) return;
     assert.equal(quote.refusal, "FULL");
+  });
+
+  it("refuses UNDERWRITE_REJECT on pool-average p, not on UA472 clean_demo_prior", () => {
+    const pool = getFixtureByKind("pool", frozen);
+    const poolQuote = quoteSnapshot(pool.snapshot, {
+      carrier: pool.snapshot.carrier,
+      flightNumber: pool.snapshot.flightNumber,
+      serviceDate: pool.snapshot.serviceDate,
+      origin: pool.snapshot.origin,
+      product: "arrival",
+      minutesLate: 60,
+    }, frozen);
+    assert.equal(poolQuote.ok, false);
+    if (poolQuote.ok) return;
+    assert.equal(poolQuote.refusal, "UNDERWRITE_REJECT");
+
+    const takeoffPool = quoteSnapshot(pool.snapshot, {
+      carrier: pool.snapshot.carrier,
+      flightNumber: pool.snapshot.flightNumber,
+      serviceDate: pool.snapshot.serviceDate,
+      origin: pool.snapshot.origin,
+      product: "takeoff",
+      minutesLate: 30,
+    }, frozen);
+    assert.equal(takeoffPool.ok, false);
+    if (takeoffPool.ok) return;
+    assert.equal(takeoffPool.refusal, "UNDERWRITE_REJECT");
+
+    const clean = getFixtureByKind("clean", frozen);
+    const singleP = {
+      ...clean.snapshot,
+      historicalDelayProb: 0.07,
+      historicalDelayProbByMinutesLate: undefined,
+    };
+    const stale = quoteSnapshot(singleP, {
+      carrier: singleP.carrier,
+      flightNumber: singleP.flightNumber,
+      serviceDate: singleP.serviceDate,
+      origin: singleP.origin,
+      product: "arrival",
+      minutesLate: 60,
+    }, frozen);
+    assert.equal(stale.ok, false);
+    if (stale.ok) return;
+    assert.equal(stale.refusal, "UNDERWRITE_REJECT");
+  });
+
+  it("keeps TARGET_LAMBDA and p_max tables, plus EXPOSURE_CAP copy", () => {
+    assert.equal(TARGET_LAMBDA, 1.45);
+    assert.equal(pMaxFor("takeoff", 30), 0.0966);
+    assert.equal(pMaxFor("takeoff", 45), 0.0644);
+    assert.equal(pMaxFor("takeoff", 60), 0.0483);
+    assert.equal(pMaxFor("arrival", 30), 0.0621);
+    assert.equal(pMaxFor("arrival", 45), 0.0414);
+    assert.equal(pMaxFor("arrival", 60), 0.0310);
+    assert.deepEqual(P_MAX_AT_TARGET_LAMBDA.takeoff, { 30: 0.0966, 45: 0.0644, 60: 0.0483 });
+    assert.equal(pHatFor(getFixtureByKind("clean", frozen).snapshot, 45), 0.05);
+    assert.equal(exceedsUnderwriteCap(0.18, "arrival", 30), true);
+    assert.equal(exceedsUnderwriteCap(0.08, "arrival", 30), false);
+    assert.ok(REFUSAL_CODES.includes("UNDERWRITE_REJECT"));
+    assert.ok(REFUSAL_CODES.includes("EXPOSURE_CAP"));
+    assert.equal(REFUSAL_COPY.EXPOSURE_CAP.title, "The book is at its line.");
   });
 });
 

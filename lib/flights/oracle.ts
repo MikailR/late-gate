@@ -33,7 +33,10 @@ export function lookupAviationstack(
 
 export function snapshotFromAviationstack(
   row: AviationstackFlight,
-  extras: Pick<FlightSnapshot, "historicalDelayProb" | "demoKind" | "originCity" | "destinationCity">,
+  extras: Pick<
+    FlightSnapshot,
+    "historicalDelayProb" | "historicalDelayProbByMinutesLate" | "demoKind" | "originCity" | "destinationCity"
+  >,
 ): FlightSnapshot {
   const scheduledArrival = row.arrival.scheduled;
   const estimatedArrival = row.arrival.estimated ?? scheduledArrival;
@@ -55,6 +58,7 @@ export function snapshotFromAviationstack(
     estimatedArrival,
     estimatedDelayMinutes: delayMinutes,
     historicalDelayProb: extras.historicalDelayProb,
+    historicalDelayProbByMinutesLate: extras.historicalDelayProbByMinutesLate,
     timeZone: row.departure.timezone,
     demoKind: extras.demoKind,
   };

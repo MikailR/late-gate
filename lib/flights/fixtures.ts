@@ -1,4 +1,8 @@
 import { addHours, formatServiceDate, minutesBetween } from "@/lib/time";
+import {
+  CLEAN_DEMO_PRIOR_BY_MINUTES_LATE,
+  POOL_AVERAGE_PRIOR_BY_MINUTES_LATE,
+} from "@/lib/pricing/constants";
 import { buildFlightKey } from "./flight-key";
 import type { AviationstackFlight, DemoKind, FlightSnapshot } from "./types";
 
@@ -17,13 +21,18 @@ type FixtureSeed = {
   blockHours: number;
   estimatedDelayMinutes: number;
   historicalDelayProb: number;
+  historicalDelayProbByMinutesLate?: FlightSnapshot["historicalDelayProbByMinutesLate"];
   status: AviationstackFlight["flight_status"];
 };
 
 /**
- * Three live-demo fixtures. Times are offset from `now` so the HOT / CUTOFF /
- * clean paths stay true throughout ETHOnline — keys therefore include the
- * computed service date (e.g. `UA472|2026-09-12|EWR` on Day 1).
+ * Home chips stay HOT / CUTOFF / clean. `pool` is off the desk — it exists so
+ * UNDERWRITE_REJECT has a fixture. Times are offset from `now` so those paths
+ * stay true throughout ETHOnline — keys therefore include the computed service
+ * date (e.g. `UA472|2026-09-12|EWR` on Day 1).
+ *
+ * CUTOFF fixture departs in 2h. Demo cutoff is 6h (Day-1 was 8h) so it still
+ * refuses; live default 4h also refuses.
  */
 const SEEDS: FixtureSeed[] = [
   {
@@ -39,7 +48,8 @@ const SEEDS: FixtureSeed[] = [
     departInHours: 7 * 24 + 8,
     blockHours: 6.25,
     estimatedDelayMinutes: 8,
-    historicalDelayProb: 0.07,
+    historicalDelayProb: CLEAN_DEMO_PRIOR_BY_MINUTES_LATE[60],
+    historicalDelayProbByMinutesLate: CLEAN_DEMO_PRIOR_BY_MINUTES_LATE,
     status: "scheduled",
   },
   {
@@ -72,6 +82,23 @@ const SEEDS: FixtureSeed[] = [
     blockHours: 6.1,
     estimatedDelayMinutes: 6,
     historicalDelayProb: 0.12,
+    status: "scheduled",
+  },
+  {
+    kind: "pool",
+    carrier: "WN",
+    airlineName: "Southwest Airlines",
+    flightNumber: "1818",
+    origin: "DAL",
+    originCity: "Dallas",
+    destination: "HOU",
+    destinationCity: "Houston",
+    timeZone: "America/Chicago",
+    departInHours: 7 * 24 + 4,
+    blockHours: 1.2,
+    estimatedDelayMinutes: 4,
+    historicalDelayProb: POOL_AVERAGE_PRIOR_BY_MINUTES_LATE[60],
+    historicalDelayProbByMinutesLate: POOL_AVERAGE_PRIOR_BY_MINUTES_LATE,
     status: "scheduled",
   },
 ];
@@ -111,6 +138,7 @@ function hydrate(seed: FixtureSeed, now: Date): HydratedFixture {
       arrival.toISOString(),
     ),
     historicalDelayProb: seed.historicalDelayProb,
+    historicalDelayProbByMinutesLate: seed.historicalDelayProbByMinutesLate,
     timeZone: seed.timeZone,
     demoKind: seed.kind,
   };

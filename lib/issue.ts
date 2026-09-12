@@ -1,5 +1,5 @@
 import { addHours } from "@/lib/time";
-import { CUTOFF_HOURS } from "@/lib/pricing/constants";
+import { cutoffHours } from "@/lib/pricing/underwrite";
 import { parseFlightKey } from "@/lib/flights/flight-key";
 import { humanTillEnv } from "@/lib/config/env";
 import { quoteFlight } from "@/lib/domain/quote";
@@ -113,7 +113,7 @@ export async function issueTicket(
   }
 
   const policyId = await store.nextPolicyId();
-  const cutoffAt = addHours(new Date(quote.flight.scheduledDeparture), -CUTOFF_HOURS).toISOString();
+  const cutoffAt = addHours(new Date(quote.flight.scheduledDeparture), -cutoffHours()).toISOString();
   const policy = policyFromQuote(quote, {
     policyId,
     humanKey: session.humanKey,

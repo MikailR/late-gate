@@ -86,10 +86,12 @@ unpaid GET ──402──► agent pays dust on Hedera
 Times are offset from *now*, so HOT / CUTOFF / clean stay true. Home chips still show three fixtures only.
 
 1. **HOT** — `B6 148 · BOS` — estimate already ~95 minutes late → **NOT ISSUED / HOT**
-2. **CUTOFF** — `AA 100 · JFK` — inside the 8-hour window → **CUTOFF**
-3. **Clean** — `UA 472 · EWR` — premium **$8.40**, 60 minutes, payout $100 → **OPEN** stub
+2. **CUTOFF** — `AA 100 · JFK` — inside the 6-hour window (Day-1 was 8h) → **CUTOFF**
+3. **Clean** — `UA 472 · EWR` — arrival / 60 is **$9 / $200**, takeoff / 60 is **$14 / $200** → **OPEN** stub
 
-Unknown flight → **NOT_FOUND**.
+Unknown flight → **NOT_FOUND**. Pool-average `WN 1818 · DAL` is off the chips → **UNDERWRITE_REJECT**.
+
+Pricing lock + gates: [`docs/pricing/README.md`](docs/pricing/README.md).
 
 A fourth fixture `DL2|<today>|ATL` exists for the worker settle path only.
 

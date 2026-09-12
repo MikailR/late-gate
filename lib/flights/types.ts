@@ -4,9 +4,14 @@ export type RefusalCode =
   | "NOT_FOUND"
   | "FULL"
   | "DUPLICATE"
-  | "UNVERIFIED";
+  | "UNVERIFIED"
+  | "UNDERWRITE_REJECT"
+  | "EXPOSURE_CAP";
 
-export type DemoKind = "clean" | "hot" | "cutoff";
+export type HomeDemoKind = "clean" | "hot" | "cutoff";
+
+/** Home chips stay clean / hot / cutoff. `pool` is the high-p UNDERWRITE_REJECT fixture. */
+export type DemoKind = HomeDemoKind | "pool";
 
 export type FlightQuery = {
   carrier: string;
@@ -31,6 +36,11 @@ export type FlightSnapshot = {
   estimatedTakeoffDelayMinutes?: number;
   /** Display / risk copy only. Premium is the locked product dollar, not p × B. */
   historicalDelayProb: number;
+  /**
+   * Flight-level p_hat per minutesLate (internal τ). Used for UNDERWRITE_REJECT.
+   * Missing → `historicalDelayProb` for every threshold.
+   */
+  historicalDelayProbByMinutesLate?: Partial<Record<30 | 45 | 60, number>>;
   timeZone: string;
   demoKind: DemoKind;
 };
