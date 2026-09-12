@@ -8,11 +8,12 @@ import type {
   QuoteSuccess,
 } from "@/lib/flights/types";
 import { addHours } from "@/lib/time";
-import { dollarsToCents, roundCents } from "@/lib/domain/pot";
+import { dollarsToCents } from "@/lib/domain/pot";
 import {
   CUTOFF_HOURS,
-  DEFAULT_PAYOUT_USD,
   LAMBDA,
+  payoutUsdForMinutesLate,
+  premiumUsdForProduct,
 } from "@/lib/pricing/constants";
 import {
   refuseCutoff,
@@ -41,6 +42,10 @@ export type QuoteInput = FlightQuery & {
   tauMinutes?: number;
   minutesLate?: MinutesLate;
   product?: StubProduct;
+  /**
+   * @deprecated ignored. Premium is the locked product dollar; payout comes from `minutesLate`.
+   * Kept so Day-1 `?payout=` still parses.
+   */
   maxPayout?: number;
   book?: HouseBook;
 };
@@ -70,10 +75,21 @@ function resolveConfigure(input: QuoteInput): Configure {
   return { product, minutesLate: DEFAULT_CONFIGURE.minutesLate };
 }
 
-/** Fair premium π = p * B * (1 + λ). Same formula as Day 1. */
-export function pricePremium(p: number, maxPayout: number, lambda = LAMBDA): number {
-  return roundCents(p * maxPayout * (1 + lambda));
+/**
+ * Locked premium for a product. minutesLate does not change this number.
+ * `p` / λ stay on the quote for risk copy only — do not re-derive dollars from them.
+ */
+export function pricePremium(product: StubProduct): number {
+  return premiumUsdForProduct(product);
 }
+
+/** Re-export so the UI rebuild can show locked dollars without re-quoting. */
+export {
+  PAYOUT_USD_BY_MINUTES_LATE,
+  PREMIUM_USD_BY_PRODUCT,
+  payoutUsdForMinutesLate,
+  premiumUsdForProduct,
+} from "@/lib/pricing/constants";
 
 /**
  * Pure quote against an already-loaded snapshot.
@@ -88,10 +104,10 @@ export function quoteSnapshot(
 ): DomainQuoteResponse {
   const configure = resolveConfigure(input);
   const tauMinutes = configure.minutesLate;
-  const maxPayout = input.maxPayout ?? DEFAULT_PAYOUT_USD;
   const delay = delayMinutesForProduct(flight, configure.product);
 
   // HOT first so the "already a mess" fixture stays HOT even after its own cutoff.
+  // Compare live delay to the chosen minutesLate — threshold only, not the money.
   if (delay >= tauMinutes) {
     return refuseHot(flight, tauMinutes);
   }
@@ -105,7 +121,9 @@ export function quoteSnapshot(
     return refuseFull(flight, tauMinutes, input.book.maxOpenPerFlight);
   }
 
-  const premium = pricePremium(flight.historicalDelayProb, maxPayout);
+  // Locked dollars: product → premium, minutesLate → payout. p is display-only.
+  const premium = pricePremium(configure.product);
+  const maxPayout = payoutUsdForMinutesLate(configure.minutesLate);
   const flightKey = buildFlightKey(
     flight.carrier,
     flight.flightNumber,

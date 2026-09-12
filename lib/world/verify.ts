@@ -5,7 +5,7 @@ import { REFUSAL_COPY } from "@/lib/domain/refusal";
 import { parseFlightKey } from "@/lib/flights/flight-key";
 import { getStore } from "@/lib/store";
 import { createWorldSession } from "./session";
-import type { WorldVerifyRequest, WorldVerifyResult } from "./types";
+import type { WorldVerifyFailure, WorldVerifyRequest, WorldVerifyResult } from "./types";
 
 export { isWorldConfigured };
 
@@ -15,7 +15,7 @@ function stubNullifier(flightKey: string, raw?: string): bigint {
   return BigInt(`0x${hex}`);
 }
 
-function unverified(flightKey: string, detail?: string): WorldVerifyResult {
+function unverified(flightKey: string, detail?: string): WorldVerifyFailure {
   const copy = REFUSAL_COPY.UNVERIFIED;
   return {
     ok: false,
@@ -92,7 +92,7 @@ async function verifyLive(
   rpId: string,
   idkitResponse: Record<string, unknown>,
   flightKey: string,
-): Promise<{ ok: true; nullifier: bigint } | WorldVerifyResult> {
+): Promise<{ ok: true; nullifier: bigint } | WorldVerifyFailure> {
   try {
     const response = await fetch(`https://developer.world.org/api/v4/verify/${rpId}`, {
       method: "POST",
