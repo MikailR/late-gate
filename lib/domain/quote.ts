@@ -8,12 +8,12 @@ import type {
   QuoteSuccess,
 } from "@/lib/flights/types";
 import { addHours } from "@/lib/time";
-import { dollarsToCents, roundCents } from "@/lib/domain/pot";
+import { dollarsToCents } from "@/lib/domain/pot";
 import {
   CUTOFF_HOURS,
-  DEFAULT_PAYOUT_USD,
   LAMBDA,
   payoutUsdForMinutesLate,
+  premiumUsdForProduct,
 } from "@/lib/pricing/constants";
 import {
   refuseCutoff,
@@ -43,8 +43,8 @@ export type QuoteInput = FlightQuery & {
   minutesLate?: MinutesLate;
   product?: StubProduct;
   /**
-   * @deprecated ignored. Premium is priced on the 60-minute reference B ($100).
-   * Payout is looked up from `minutesLate`. Kept so Day-1 `?payout=` still parses.
+   * @deprecated ignored. Premium is the locked product dollar; payout comes from `minutesLate`.
+   * Kept so Day-1 `?payout=` still parses.
    */
   maxPayout?: number;
   book?: HouseBook;
@@ -76,19 +76,20 @@ function resolveConfigure(input: QuoteInput): Configure {
 }
 
 /**
- * Fair premium π = p * B_ref * (1 + λ). Same Day-1 formula.
- * Always pass the 60-minute reference B ($100) — configure changes payout, not π.
+ * Locked premium for a product. minutesLate does not change this number.
+ * `p` / λ stay on the quote for risk copy only — do not re-derive dollars from them.
  */
-export function pricePremium(
-  p: number,
-  referencePayout = DEFAULT_PAYOUT_USD,
-  lambda = LAMBDA,
-): number {
-  return roundCents(p * referencePayout * (1 + lambda));
+export function pricePremium(product: StubProduct): number {
+  return premiumUsdForProduct(product);
 }
 
-/** Re-export so the UI rebuild can show payout without re-quoting. */
-export { payoutUsdForMinutesLate, PAYOUT_USD_BY_MINUTES_LATE } from "@/lib/pricing/constants";
+/** Re-export so the UI rebuild can show locked dollars without re-quoting. */
+export {
+  PAYOUT_USD_BY_MINUTES_LATE,
+  PREMIUM_USD_BY_PRODUCT,
+  payoutUsdForMinutesLate,
+  premiumUsdForProduct,
+} from "@/lib/pricing/constants";
 
 /**
  * Pure quote against an already-loaded snapshot.
@@ -120,8 +121,8 @@ export function quoteSnapshot(
     return refuseFull(flight, tauMinutes, input.book.maxOpenPerFlight);
   }
 
-  // Premium is fixed on the 60-minute reference B. Payout scales with minutesLate.
-  const premium = pricePremium(flight.historicalDelayProb, DEFAULT_PAYOUT_USD);
+  // Locked dollars: product → premium, minutesLate → payout. p is display-only.
+  const premium = pricePremium(configure.product);
   const maxPayout = payoutUsdForMinutesLate(configure.minutesLate);
   const flightKey = buildFlightKey(
     flight.carrier,

@@ -24,7 +24,15 @@ export async function issueTicket(
   const parsed = parseFlightKey(input.flightKey);
   if (!parsed) {
     const refusal = refuseUnverified(60, input.flightKey);
-    return { ok: false, status: "NOT_ISSUED", ...refusal, refusal: "NOT_FOUND" };
+    return {
+      ok: false,
+      status: "NOT_ISSUED",
+      refusal: "NOT_FOUND",
+      title: refusal.title,
+      reason: refusal.reason,
+      detail: refusal.detail,
+      flightKey: input.flightKey,
+    };
   }
 
   const session = readWorldSession(input.worldSession, now);
@@ -33,7 +41,15 @@ export async function issueTicket(
       input.configure?.minutesLate ?? DEFAULT_CONFIGURE.minutesLate,
       input.flightKey,
     );
-    return { ok: false, status: "NOT_ISSUED", ...refusal };
+    return {
+      ok: false,
+      status: "NOT_ISSUED",
+      refusal: "UNVERIFIED",
+      title: refusal.title,
+      reason: refusal.reason,
+      detail: refusal.detail,
+      flightKey: input.flightKey,
+    };
   }
 
   const configure: Configure = input.configure ?? DEFAULT_CONFIGURE;

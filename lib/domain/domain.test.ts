@@ -12,7 +12,7 @@ import { travelerStatus } from "./policy";
 const frozen = new Date("2026-09-12T16:00:00.000Z");
 
 describe("quoteFlight Day-1 paths", () => {
-  it("quotes UA472 at $8.40 / arrival / 60", () => {
+  it("quotes UA472 at $9 / arrival / 60", () => {
     const clean = getFixtureByKind("clean", frozen);
     const parsed = toFlightQuery({
       carrier: clean.snapshot.carrier,
@@ -24,15 +24,15 @@ describe("quoteFlight Day-1 paths", () => {
     const quote = quoteFlight(parsed, frozen);
     assert.equal(quote.ok, true);
     if (!quote.ok) return;
-    assert.equal(quote.premium, 8.4);
-    assert.equal(quote.premiumCents, 840);
-    assert.equal(quote.payoutCents, 10_000);
-    assert.equal(quote.maxPayout, 100);
+    assert.equal(quote.premium, 9);
+    assert.equal(quote.premiumCents, 900);
+    assert.equal(quote.payoutCents, 20_000);
+    assert.equal(quote.maxPayout, 200);
     assert.equal(quote.configure.minutesLate, 60);
     assert.equal(quote.product, "arrival");
   });
 
-  it("keeps UA472 premium $8.40 at 30 and 45 and scales payout", () => {
+  it("locks UA472 arrival $9 and takeoff $14; payout scales 100/150/200", () => {
     const clean = getFixtureByKind("clean", frozen);
     const base = {
       carrier: clean.snapshot.carrier,
@@ -41,35 +41,52 @@ describe("quoteFlight Day-1 paths", () => {
       origin: clean.snapshot.origin,
     };
 
-    const at30 = quoteFlight({ ...base, minutesLate: 30 }, frozen);
-    assert.equal(at30.ok, true);
-    if (!at30.ok) return;
-    assert.equal(at30.premium, 8.4);
-    assert.equal(at30.premiumCents, 840);
-    assert.equal(at30.payoutCents, 5_000);
-    assert.equal(at30.maxPayout, 50);
-    assert.equal(at30.configure.minutesLate, 30);
+    const arrival30 = quoteFlight({ ...base, product: "arrival", minutesLate: 30 }, frozen);
+    assert.equal(arrival30.ok, true);
+    if (!arrival30.ok) return;
+    assert.equal(arrival30.premium, 9);
+    assert.equal(arrival30.premiumCents, 900);
+    assert.equal(arrival30.payoutCents, 10_000);
+    assert.equal(arrival30.maxPayout, 100);
 
-    const at45 = quoteFlight({ ...base, minutesLate: 45 }, frozen);
-    assert.equal(at45.ok, true);
-    if (!at45.ok) return;
-    assert.equal(at45.premium, 8.4);
-    assert.equal(at45.premiumCents, 840);
-    assert.equal(at45.payoutCents, 7_500);
-    assert.equal(at45.maxPayout, 75);
-    assert.equal(at45.configure.minutesLate, 45);
+    const arrival45 = quoteFlight({ ...base, product: "arrival", minutesLate: 45 }, frozen);
+    assert.equal(arrival45.ok, true);
+    if (!arrival45.ok) return;
+    assert.equal(arrival45.premium, 9);
+    assert.equal(arrival45.payoutCents, 15_000);
+    assert.equal(arrival45.maxPayout, 150);
 
-    const ignoredOverride = quoteFlight({ ...base, minutesLate: 60, maxPayout: 200 }, frozen);
+    const takeoff60 = quoteFlight({ ...base, product: "takeoff", minutesLate: 60 }, frozen);
+    assert.equal(takeoff60.ok, true);
+    if (!takeoff60.ok) return;
+    assert.equal(takeoff60.premium, 14);
+    assert.equal(takeoff60.premiumCents, 1_400);
+    assert.equal(takeoff60.payoutCents, 20_000);
+    assert.equal(takeoff60.maxPayout, 200);
+
+    const takeoff30 = quoteFlight({ ...base, product: "takeoff", minutesLate: 30 }, frozen);
+    assert.equal(takeoff30.ok, true);
+    if (!takeoff30.ok) return;
+    assert.equal(takeoff30.premium, 14);
+    assert.equal(takeoff30.payoutCents, 10_000);
+
+    const takeoff45 = quoteFlight({ ...base, product: "takeoff", minutesLate: 45 }, frozen);
+    assert.equal(takeoff45.ok, true);
+    if (!takeoff45.ok) return;
+    assert.equal(takeoff45.premium, 14);
+    assert.equal(takeoff45.payoutCents, 15_000);
+
+    const ignoredOverride = quoteFlight({ ...base, minutesLate: 60, maxPayout: 50 }, frozen);
     assert.equal(ignoredOverride.ok, true);
     if (!ignoredOverride.ok) return;
-    assert.equal(ignoredOverride.premium, 8.4);
-    assert.equal(ignoredOverride.payoutCents, 10_000);
+    assert.equal(ignoredOverride.premium, 9);
+    assert.equal(ignoredOverride.payoutCents, 20_000);
 
     const day1 = day1QuoteFlight({ ...base, tauMinutes: 30 }, frozen);
     assert.equal(day1.ok, true);
     if (!day1.ok) return;
-    assert.equal(day1.premium, 8.4);
-    assert.equal(day1.maxPayout, 50);
+    assert.equal(day1.premium, 9);
+    assert.equal(day1.maxPayout, 100);
   });
 
   it("refuses HOT then CUTOFF then NOT_FOUND", () => {

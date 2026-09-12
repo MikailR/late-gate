@@ -57,17 +57,16 @@ type Configure = { product: StubProduct; minutesLate: 30 | 45 | 60 };
 
 `minutesLate` is the only UI-facing threshold. Internally `tauMinutes === minutesLate`. Default is arrival / 60 (Day-1).
 
-**Money lock:** Configure is a **fixed premium**. Payout scales with `minutesLate`. Premium is computed once from the Day-1 fair formula `π = p * B_ref * (1 + λ)` against the 60-minute reference `B_ref` ($100). Picking 30 or 45 does **not** re-price premium. HOT still compares live delay to the chosen `minutesLate`.
+**Money lock (winning triples):** Product selects a **fixed premium**. `minutesLate` selects payout from one table shared by both products. Do **not** re-derive dollars from `p * B * (1 + λ)` — `historicalDelayProb` and `λ` are display / risk copy only. HOT still compares live delay to the chosen `minutesLate`.
 
-| `minutesLate` | Premium (same flight) | Payout (hypothesis) |
-|---|---|---|
-| 30 | priced on $100 B_ref | **$50** |
-| 45 | priced on $100 B_ref | **$75** |
-| 60 | priced on $100 B_ref | **$100** |
+| Product | Premium (fixed) | Payout 30 | Payout 45 | Payout 60 |
+|---|---|---|---|---|
+| takeoff | **$14** | **$100** | **$150** | **$200** |
+| arrival | **$9** | **$100** | **$150** | **$200** |
 
-UA472 Day-1 demo stays **$8.40 / 60 / $100**. Same flight at 30 → $8.40 / $50; at 45 → $8.40 / $75. Human till only — do not send premium or payout to the HBAR machine till.
+UA472 Day-1 default (arrival / 60) is **$9 / $200**. Same flight takeoff / 60 is **$14 / $200**. Human till only — do not send premium or payout to the HBAR machine till.
 
-Lookup: `payoutUsdForMinutesLate` / `PAYOUT_USD_BY_MINUTES_LATE` from `@/lib/domain`.
+Lookup: `premiumUsdForProduct` / `PREMIUM_USD_BY_PRODUCT` and `payoutUsdForMinutesLate` / `PAYOUT_USD_BY_MINUTES_LATE` from `@/lib/domain`.
 
 **Request:** Day-1 query string plus optional `product`, `minutesLate`. `payout` / `maxPayout` query params are ignored.
 
