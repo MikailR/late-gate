@@ -41,7 +41,15 @@ export type TicketIssueSuccess = {
 export type TicketIssueRefusal = {
   ok: false;
   status: "NOT_ISSUED";
-  refusal: "HOT" | "CUTOFF" | "NOT_FOUND" | "FULL" | "DUPLICATE" | "UNVERIFIED";
+  refusal:
+    | "HOT"
+    | "CUTOFF"
+    | "NOT_FOUND"
+    | "FULL"
+    | "DUPLICATE"
+    | "UNVERIFIED"
+    | "UNDERWRITE_REJECT"
+    | "EXPOSURE_CAP";
   title: string;
   reason: string;
   detail: string;

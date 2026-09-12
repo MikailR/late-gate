@@ -18,9 +18,13 @@ export function humanKeyFromNullifier(nullifier: bigint | string, flightKey: str
   return keccak256(concat([be32, toHex(stringToBytes(flightKey))]));
 }
 
-/** Canonical JSON: sorted keys, `demoKind` omitted so demo/live hash the same facts. */
+/** Canonical JSON: sorted keys. Demo-only prior tables omitted so demo/live hash the same facts. */
 export function canonicalSnapshotJson(snapshot: FlightSnapshot): string {
-  const { demoKind: _demoKind, ...rest } = snapshot;
+  const {
+    demoKind: _demoKind,
+    historicalDelayProbByMinutesLate: _priors,
+    ...rest
+  } = snapshot;
   const keys = Object.keys(rest).sort();
   const ordered: Record<string, unknown> = {};
   for (const key of keys) {

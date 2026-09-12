@@ -9,17 +9,14 @@ import type {
 } from "@/lib/flights/types";
 import { addHours } from "@/lib/time";
 import { dollarsToCents } from "@/lib/domain/pot";
-import {
-  CUTOFF_HOURS,
-  LAMBDA,
-  payoutUsdForMinutesLate,
-  premiumUsdForProduct,
-} from "@/lib/pricing/constants";
+import { LAMBDA, payoutUsdForMinutesLate, premiumUsdForProduct } from "@/lib/pricing/constants";
+import { cutoffHours, exceedsUnderwriteCap, pHatFor } from "@/lib/pricing/underwrite";
 import {
   refuseCutoff,
   refuseFull,
   refuseHot,
   refuseNotFound,
+  refuseUnderwrite,
 } from "./refusal";
 import {
   DEFAULT_CONFIGURE,
@@ -93,7 +90,7 @@ export {
 
 /**
  * Pure quote against an already-loaded snapshot.
- * Order is locked: NOT_FOUND (caller) → HOT → CUTOFF → FULL → quote.
+ * Order is locked: NOT_FOUND (caller) → HOT → CUTOFF → FULL → UNDERWRITE_REJECT → quote.
  * Human till only — premium is USD. Do not send this number to the HBAR machine till.
  * // status: implemented
  */
@@ -112,7 +109,8 @@ export function quoteSnapshot(
     return refuseHot(flight, tauMinutes);
   }
 
-  const cutoffAt = addHours(new Date(flight.scheduledDeparture), -CUTOFF_HOURS);
+  const hours = cutoffHours();
+  const cutoffAt = addHours(new Date(flight.scheduledDeparture), -hours);
   if (now.getTime() >= cutoffAt.getTime()) {
     return refuseCutoff(flight, tauMinutes);
   }
@@ -120,6 +118,15 @@ export function quoteSnapshot(
   if (input.book && input.book.openCount >= input.book.maxOpenPerFlight) {
     return refuseFull(flight, tauMinutes, input.book.maxOpenPerFlight);
   }
+
+  // Flight-level p_hat vs listing cap. Locked π does not change.
+  const pHat = pHatFor(flight, configure.minutesLate);
+  if (exceedsUnderwriteCap(pHat, configure.product, configure.minutesLate)) {
+    return refuseUnderwrite(flight, tauMinutes);
+  }
+
+  // TODO(exposure): refuse EXPOSURE_CAP when Studio portfolio totals exceed
+  // PORTFOLIO_CAP_USD. Constants + refusal copy are wired; the route check is not.
 
   // Locked dollars: product → premium, minutesLate → payout. p is display-only.
   const premium = pricePremium(configure.product);
@@ -138,7 +145,7 @@ export function quoteSnapshot(
     tauMinutes,
     maxPayout,
     lambda: LAMBDA,
-    p: flight.historicalDelayProb,
+    p: pHat,
     currency: "USD",
     flight,
     product: configure.product,
@@ -154,7 +161,7 @@ export function quoteSnapshot(
  *   - lock this quote 10 minutes in lib/store (USD, human till)
  *   - later: PolicyOpened on Base Sepolia + optional HCS
  *   - never charge HBAR for a traveler ticket
- * // status: implemented (lookup + quote). Quote lock + FULL book are TODO at the route.
+ * // status: implemented (lookup + quote). Quote lock + FULL book + EXPOSURE_CAP are TODO at the route.
  */
 export function quoteFlight(input: QuoteInput, now = new Date()): DomainQuoteResponse {
   const configure = resolveConfigure(input);

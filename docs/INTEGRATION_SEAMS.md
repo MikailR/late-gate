@@ -12,7 +12,7 @@ Day-1 screens keep importing `@/lib/flights/types` and `@/lib/pricing/quote`. Ne
 
 | Module | Status | Notes |
 |---|---|---|
-| `lib/domain` quote / refuse / observe / pot | **implemented** | Same Day-1 HOT → CUTOFF → quote tree. Adds FULL / DUPLICATE / UNVERIFIED copy. Configure changes payout, not premium. |
+| `lib/domain` quote / refuse / observe / pot | **implemented** | NOT_FOUND → HOT → CUTOFF → FULL → UNDERWRITE_REJECT → quote. Adds DUPLICATE / UNVERIFIED / EXPOSURE_CAP copy. Configure changes payout, not premium. |
 | `lib/domain` keys (flightKeyHash, humanKey, snapshotHash) | **implemented** | keccak256 via viem |
 | `lib/flights` fixtures + oracle | **implemented** | Demo mode. DL2 settle fixture is not on the home chips. |
 | `lib/flights/lookup` live Aviationstack | **TODO** | Needs `AVIATIONSTACK_KEY` |
@@ -68,15 +68,21 @@ UA472 Day-1 default (arrival / 60) is **$9 / $200**. Same flight takeoff / 60 is
 
 Lookup: `premiumUsdForProduct` / `PREMIUM_USD_BY_PRODUCT` and `payoutUsdForMinutesLate` / `PAYOUT_USD_BY_MINUTES_LATE` from `@/lib/domain`.
 
+**Underwriting (Financial Research, version `2026-09-12.eng-lock.v1`):** constants in [`docs/pricing/rails-pricing-constants.json`](./pricing/rails-pricing-constants.json) and [`docs/pricing/README.md`](./pricing/README.md). `TARGET_LAMBDA = 1.45`. Refuse `UNDERWRITE_REJECT` when flight-level `p_hat` exceeds the listing cap for `(product, minutesLate)`. UA472 uses `clean_demo_prior` per τ (`p30=0.08`, `p45=0.05`, `p60=0.035`) so the FOMO demo still quotes. US pool-average p (~18%/14%/11%) is underwater — fixture `WN1818` refuses. τ stays internal; UI-facing configure is still `minutesLate` 30\|45\|60.
+
+**CUTOFF:** demo **6h** before STD (Day-1 was 8h). Live default **4h**. **Inventory:** demo **5** stubs (`HOUSE_MAX_OPEN_PER_FLIGHT`); live default **10**. **EXPOSURE_CAP:** refusal type + portfolio constants only — route check is TODO.
+
 **Request:** Day-1 query string plus optional `product`, `minutesLate`. `payout` / `maxPayout` query params are ignored.
 
 **Response:** `Quote` (extends Day-1 `QuoteSuccess` with `product`, `configure`, `premiumCents`, `payoutCents`) or `QuoteRefusal`. `maxPayout` on the quote is the looked-up USD payout, not a second premium input.
 
 **HTTP:** 200 quote / 409 refusal / 400 incomplete.
 
-**Refusal codes:** `HOT` \| `CUTOFF` \| `NOT_FOUND` \| `FULL` \| `DUPLICATE` \| `UNVERIFIED`. Traveler stamp is **NOT ISSUED** + code.
+**Refusal codes:** `HOT` \| `CUTOFF` \| `NOT_FOUND` \| `FULL` \| `DUPLICATE` \| `UNVERIFIED` \| `UNDERWRITE_REJECT` \| `EXPOSURE_CAP`. Traveler stamp is **NOT ISSUED** + code.
 
-**TODO:** `FULL` needs subgraph `openCount`. Pass `book` into `quoteFlight` when Studio is live.
+**Quote order:** `NOT_FOUND` → `HOT` → `CUTOFF` → `FULL` → `UNDERWRITE_REJECT` → quote.
+
+**TODO:** `FULL` needs subgraph `openCount`. Pass `book` into `quoteFlight` when Studio is live. `EXPOSURE_CAP` needs portfolio totals.
 
 ---
 
