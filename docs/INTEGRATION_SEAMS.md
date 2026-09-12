@@ -12,7 +12,7 @@ Day-1 screens keep importing `@/lib/flights/types` and `@/lib/pricing/quote`. Ne
 
 | Module | Status | Notes |
 |---|---|---|
-| `lib/domain` quote / refuse / observe / pot | **implemented** | Same Day-1 HOT → CUTOFF → quote tree. Adds FULL / DUPLICATE / UNVERIFIED copy. |
+| `lib/domain` quote / refuse / observe / pot | **implemented** | Same Day-1 HOT → CUTOFF → quote tree. Adds FULL / DUPLICATE / UNVERIFIED copy. Configure changes payout, not premium. |
 | `lib/domain` keys (flightKeyHash, humanKey, snapshotHash) | **implemented** | keccak256 via viem |
 | `lib/flights` fixtures + oracle | **implemented** | Demo mode. DL2 settle fixture is not on the home chips. |
 | `lib/flights/lookup` live Aviationstack | **TODO** | Needs `AVIATIONSTACK_KEY` |
@@ -57,9 +57,21 @@ type Configure = { product: StubProduct; minutesLate: 30 | 45 | 60 };
 
 `minutesLate` is the only UI-facing threshold. Internally `tauMinutes === minutesLate`. Default is arrival / 60 (Day-1).
 
-**Request:** Day-1 query string plus optional `product`, `minutesLate`.
+**Money lock:** Configure is a **fixed premium**. Payout scales with `minutesLate`. Premium is computed once from the Day-1 fair formula `π = p * B_ref * (1 + λ)` against the 60-minute reference `B_ref` ($100). Picking 30 or 45 does **not** re-price premium. HOT still compares live delay to the chosen `minutesLate`.
 
-**Response:** `Quote` (extends Day-1 `QuoteSuccess` with `product`, `configure`, `premiumCents`, `payoutCents`) or `QuoteRefusal`.
+| `minutesLate` | Premium (same flight) | Payout (hypothesis) |
+|---|---|---|
+| 30 | priced on $100 B_ref | **$50** |
+| 45 | priced on $100 B_ref | **$75** |
+| 60 | priced on $100 B_ref | **$100** |
+
+UA472 Day-1 demo stays **$8.40 / 60 / $100**. Same flight at 30 → $8.40 / $50; at 45 → $8.40 / $75. Human till only — do not send premium or payout to the HBAR machine till.
+
+Lookup: `payoutUsdForMinutesLate` / `PAYOUT_USD_BY_MINUTES_LATE` from `@/lib/domain`.
+
+**Request:** Day-1 query string plus optional `product`, `minutesLate`. `payout` / `maxPayout` query params are ignored.
+
+**Response:** `Quote` (extends Day-1 `QuoteSuccess` with `product`, `configure`, `premiumCents`, `payoutCents`) or `QuoteRefusal`. `maxPayout` on the quote is the looked-up USD payout, not a second premium input.
 
 **HTTP:** 200 quote / 409 refusal / 400 incomplete.
 

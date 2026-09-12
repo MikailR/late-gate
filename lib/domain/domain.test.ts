@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { getFixtureByKind } from "@/lib/flights/fixtures";
 import { toFlightQuery } from "@/lib/flights/flight-key";
 import { quoteFlight, quoteSnapshot } from "./quote";
+import { quoteFlight as day1QuoteFlight } from "@/lib/pricing/quote";
 import { applyCredit, applyDebit, dollarsToCents, emptyPot } from "./pot";
 import { decideSettlement } from "./observe";
 import { humanKeyFromNullifier, ticketNumberFromPolicyId } from "./keys";
@@ -26,8 +27,49 @@ describe("quoteFlight Day-1 paths", () => {
     assert.equal(quote.premium, 8.4);
     assert.equal(quote.premiumCents, 840);
     assert.equal(quote.payoutCents, 10_000);
+    assert.equal(quote.maxPayout, 100);
     assert.equal(quote.configure.minutesLate, 60);
     assert.equal(quote.product, "arrival");
+  });
+
+  it("keeps UA472 premium $8.40 at 30 and 45 and scales payout", () => {
+    const clean = getFixtureByKind("clean", frozen);
+    const base = {
+      carrier: clean.snapshot.carrier,
+      flightNumber: clean.snapshot.flightNumber,
+      serviceDate: clean.snapshot.serviceDate,
+      origin: clean.snapshot.origin,
+    };
+
+    const at30 = quoteFlight({ ...base, minutesLate: 30 }, frozen);
+    assert.equal(at30.ok, true);
+    if (!at30.ok) return;
+    assert.equal(at30.premium, 8.4);
+    assert.equal(at30.premiumCents, 840);
+    assert.equal(at30.payoutCents, 5_000);
+    assert.equal(at30.maxPayout, 50);
+    assert.equal(at30.configure.minutesLate, 30);
+
+    const at45 = quoteFlight({ ...base, minutesLate: 45 }, frozen);
+    assert.equal(at45.ok, true);
+    if (!at45.ok) return;
+    assert.equal(at45.premium, 8.4);
+    assert.equal(at45.premiumCents, 840);
+    assert.equal(at45.payoutCents, 7_500);
+    assert.equal(at45.maxPayout, 75);
+    assert.equal(at45.configure.minutesLate, 45);
+
+    const ignoredOverride = quoteFlight({ ...base, minutesLate: 60, maxPayout: 200 }, frozen);
+    assert.equal(ignoredOverride.ok, true);
+    if (!ignoredOverride.ok) return;
+    assert.equal(ignoredOverride.premium, 8.4);
+    assert.equal(ignoredOverride.payoutCents, 10_000);
+
+    const day1 = day1QuoteFlight({ ...base, tauMinutes: 30 }, frozen);
+    assert.equal(day1.ok, true);
+    if (!day1.ok) return;
+    assert.equal(day1.premium, 8.4);
+    assert.equal(day1.maxPayout, 50);
   });
 
   it("refuses HOT then CUTOFF then NOT_FOUND", () => {
@@ -97,7 +139,7 @@ describe("pot math", () => {
 
 describe("observe", () => {
   it("pays when observed delay ≥ minutesLate, else expires", () => {
-    const settle = getFixtureByKind("settle", frozen);
+    const settle = getFixtureByKind("hot", frozen);
     const paid = decideSettlement(
       settle.snapshot,
       { product: "arrival", minutesLate: 60 },

@@ -13,6 +13,7 @@ import {
   CUTOFF_HOURS,
   DEFAULT_PAYOUT_USD,
   LAMBDA,
+  payoutUsdForMinutesLate,
 } from "@/lib/pricing/constants";
 import {
   refuseCutoff,
@@ -41,6 +42,10 @@ export type QuoteInput = FlightQuery & {
   tauMinutes?: number;
   minutesLate?: MinutesLate;
   product?: StubProduct;
+  /**
+   * @deprecated ignored. Premium is priced on the 60-minute reference B ($100).
+   * Payout is looked up from `minutesLate`. Kept so Day-1 `?payout=` still parses.
+   */
   maxPayout?: number;
   book?: HouseBook;
 };
@@ -70,10 +75,20 @@ function resolveConfigure(input: QuoteInput): Configure {
   return { product, minutesLate: DEFAULT_CONFIGURE.minutesLate };
 }
 
-/** Fair premium π = p * B * (1 + λ). Same formula as Day 1. */
-export function pricePremium(p: number, maxPayout: number, lambda = LAMBDA): number {
-  return roundCents(p * maxPayout * (1 + lambda));
+/**
+ * Fair premium π = p * B_ref * (1 + λ). Same Day-1 formula.
+ * Always pass the 60-minute reference B ($100) — configure changes payout, not π.
+ */
+export function pricePremium(
+  p: number,
+  referencePayout = DEFAULT_PAYOUT_USD,
+  lambda = LAMBDA,
+): number {
+  return roundCents(p * referencePayout * (1 + lambda));
 }
+
+/** Re-export so the UI rebuild can show payout without re-quoting. */
+export { payoutUsdForMinutesLate, PAYOUT_USD_BY_MINUTES_LATE } from "@/lib/pricing/constants";
 
 /**
  * Pure quote against an already-loaded snapshot.
@@ -88,10 +103,10 @@ export function quoteSnapshot(
 ): DomainQuoteResponse {
   const configure = resolveConfigure(input);
   const tauMinutes = configure.minutesLate;
-  const maxPayout = input.maxPayout ?? DEFAULT_PAYOUT_USD;
   const delay = delayMinutesForProduct(flight, configure.product);
 
   // HOT first so the "already a mess" fixture stays HOT even after its own cutoff.
+  // Compare live delay to the chosen minutesLate — threshold only, not the money.
   if (delay >= tauMinutes) {
     return refuseHot(flight, tauMinutes);
   }
@@ -105,7 +120,9 @@ export function quoteSnapshot(
     return refuseFull(flight, tauMinutes, input.book.maxOpenPerFlight);
   }
 
-  const premium = pricePremium(flight.historicalDelayProb, maxPayout);
+  // Premium is fixed on the 60-minute reference B. Payout scales with minutesLate.
+  const premium = pricePremium(flight.historicalDelayProb, DEFAULT_PAYOUT_USD);
+  const maxPayout = payoutUsdForMinutesLate(configure.minutesLate);
   const flightKey = buildFlightKey(
     flight.carrier,
     flight.flightNumber,

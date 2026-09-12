@@ -1,4 +1,5 @@
 import { toFlightQuery } from "@/lib/flights/flight-key";
+import { isMinutesLate, isStubProduct } from "@/lib/domain/types";
 import type { QuoteInput } from "@/lib/pricing/quote";
 
 type RawParams = Record<string, string | string[] | undefined>;
@@ -23,9 +24,15 @@ export function parseQuoteInput(params: RawParams): QuoteInput | null {
   });
   if (!query) return null;
 
+  const minutesLateRaw = optionalNumber(first(params.minutesLate));
+  const productRaw = first(params.product);
+
   return {
     ...query,
     tauMinutes: optionalNumber(first(params.tau) ?? first(params.tauMinutes)),
+    minutesLate: isMinutesLate(minutesLateRaw) ? minutesLateRaw : undefined,
+    product: isStubProduct(productRaw) ? productRaw : undefined,
+    // Parsed for Day-1 query compat. Quote math ignores this — payout comes from minutesLate.
     maxPayout: optionalNumber(first(params.payout) ?? first(params.maxPayout)),
   };
 }

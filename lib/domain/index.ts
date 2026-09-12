@@ -41,6 +41,8 @@ export {
 } from "./refusal";
 
 export {
+  PAYOUT_USD_BY_MINUTES_LATE,
+  payoutUsdForMinutesLate,
   pricePremium,
   quoteFlight,
   quoteSnapshot,

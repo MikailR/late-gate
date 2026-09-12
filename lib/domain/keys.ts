@@ -15,7 +15,7 @@ export function flightKeyHash(flightKey: string): FlightKeyHash {
 export function humanKeyFromNullifier(nullifier: bigint | string, flightKey: string): HumanKey {
   const asBigInt = typeof nullifier === "bigint" ? nullifier : BigInt(nullifier);
   const be32 = pad(toHex(asBigInt), { size: 32 });
-  return keccak256(concat([be32, stringToBytes(flightKey)]));
+  return keccak256(concat([be32, toHex(stringToBytes(flightKey))]));
 }
 
 /** Canonical JSON: sorted keys, `demoKind` omitted so demo/live hash the same facts. */
