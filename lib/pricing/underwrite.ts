@@ -64,7 +64,8 @@ export function houseEvUsd(
   minutesLate: MinutesLate,
   pHat: number,
 ): number {
-  return PREMIUM_USD_BY_PRODUCT[product] - pHat * PAYOUT_USD_BY_MINUTES_LATE[minutesLate];
+  const ev = PREMIUM_USD_BY_PRODUCT[product] - pHat * PAYOUT_USD_BY_MINUTES_LATE[minutesLate];
+  return Math.round(ev * 100) / 100;
 }
 
 /** Demo 6h (Day-1 was 8h). Live default 4h. */
