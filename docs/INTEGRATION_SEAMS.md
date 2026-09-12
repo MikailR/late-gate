@@ -80,6 +80,8 @@ Lookup: `premiumUsdForProduct` / `PREMIUM_USD_BY_PRODUCT` and `payoutUsdForMinut
 
 **Refusal codes:** `HOT` \| `CUTOFF` \| `NOT_FOUND` \| `FULL` \| `DUPLICATE` \| `UNVERIFIED` \| `UNDERWRITE_REJECT` \| `EXPOSURE_CAP`. Traveler stamp is **NOT ISSUED** + code.
 
+**Pick-time UX (no UI work here):** `UNDERWRITE_REJECT` and the other **NOT ISSUED** codes used at flight/product pick (`HOT`, `CUTOFF`, `FULL`, `EXPOSURE_CAP`) should render as a **disabled row with a reason**, not a separate sorry screen. `NOT_FOUND` / `DUPLICATE` / `UNVERIFIED` stay path-level.
+
 **Quote order:** `NOT_FOUND` → `HOT` → `CUTOFF` → `FULL` → `UNDERWRITE_REJECT` → quote.
 
 **TODO:** `FULL` needs subgraph `openCount`. Pass `book` into `quoteFlight` when Studio is live. `EXPOSURE_CAP` needs portfolio totals.
