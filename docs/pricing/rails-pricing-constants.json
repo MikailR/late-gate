@@ -1,0 +1,166 @@
+{
+  "meta": {
+    "product": "LateGate",
+    "version": "2026-09-12.eng-lock.v1",
+    "notes": "Eng locked baseline: fixed premium per product, tiered payouts by traveler-selected threshold. Threshold minutes (tau) are INTERNAL only — never show in traveler UI. House is sole counterparty. Sell only when flight-level p_hat is under underwriting gates or house EV will be negative at pool rates.",
+    "currency": "USD",
+    "data_basis": "BTS Reporting Carrier OTP Jan+Jul 2024 empirical; selective underwriting required"
+  },
+  "products": {
+    "takeoff_delay": {
+      "code": "TAKEOFF",
+      "settlement_metric": "gate_departure_delay_minutes",
+      "bts_field_proxy": "DepDelay",
+      "definition": "Actual gate-out minus published scheduled departure (CRS). Not wheels-off.",
+      "premium_cents": 1400,
+      "premium_usd": 14.0
+    },
+    "arrival_delay": {
+      "code": "ARRIVAL",
+      "settlement_metric": "gate_arrival_delay_minutes",
+      "bts_field_proxy": "ArrDelay",
+      "definition": "Actual gate-in / block-in minus published scheduled arrival (CRS). Not wheels-on.",
+      "premium_cents": 900,
+      "premium_usd": 9.0
+    }
+  },
+  "thresholds": {
+    "internal_only": true,
+    "ui_labels": {
+      "30": "Short buffer",
+      "45": "Medium buffer",
+      "60": "Long buffer"
+    },
+    "minutes": [30, 45, 60],
+    "payouts_usd": {
+      "30": 100,
+      "45": 150,
+      "60": 200
+    },
+    "payouts_cents": {
+      "30": 10000,
+      "45": 15000,
+      "60": 20000
+    },
+    "rule": "Traveler selects one threshold per stub. Premium is FIXED for the product; payout B scales with selected threshold. Stub pays B if observed delay_minutes >= selected threshold; else 0. (Single-tier payout, not cumulative.)"
+  },
+  "load_and_edge": {
+    "target_lambda": 1.45,
+    "min_lambda_underwriting": 1.25,
+    "adverse_selection_buffer": 0.20,
+    "formula": "pi = lambda * E[payout] = lambda * p_hat(delay >= tau) * B(tau)",
+    "house_ev_per_stub": "pi - p_hat * B",
+    "note": "Locked pi is NOT equal to lambda*E[payout] at US pool-average p; lambda is enforced via underwriting gates on p_hat."
+  },
+  "underwriting_gates": {
+    "description": "Refuse listing / HOT if flight-level p_hat exceeds these caps. Caps derived from locked pi, B, and target lambda.",
+    "by_product_and_tau": {
+      "TAKEOFF": {
+        "30": { "p_max_lambda_1_45": 0.0966, "p_max_lambda_1_25": 0.1120, "p_breakeven_lambda_1": 0.1400 },
+        "45": { "p_max_lambda_1_45": 0.0644, "p_max_lambda_1_25": 0.0747, "p_breakeven_lambda_1": 0.0933 },
+        "60": { "p_max_lambda_1_45": 0.0483, "p_max_lambda_1_25": 0.0560, "p_breakeven_lambda_1": 0.0700 }
+      },
+      "ARRIVAL": {
+        "30": { "p_max_lambda_1_45": 0.0621, "p_max_lambda_1_25": 0.0720, "p_breakeven_lambda_1": 0.0900 },
+        "45": { "p_max_lambda_1_45": 0.0414, "p_max_lambda_1_25": 0.0480, "p_breakeven_lambda_1": 0.0600 },
+        "60": { "p_max_lambda_1_45": 0.0310, "p_max_lambda_1_25": 0.0360, "p_breakeven_lambda_1": 0.0450 }
+      }
+    },
+    "clean_demo_prior": {
+      "p30": 0.08,
+      "p45": 0.05,
+      "p60": 0.035,
+      "expected_house_ev": {
+        "TAKEOFF": { "30": 6.0, "45": 6.5, "60": 7.0 },
+        "ARRIVAL": { "30": 1.0, "45": 1.5, "60": 2.0 }
+      }
+    },
+    "pool_average_prior_bts_2024_jan_jul": {
+      "TAKEOFF": { "30": 0.1833, "45": 0.1361, "60": 0.1050 },
+      "ARRIVAL": { "30": 0.1866, "45": 0.1383, "60": 0.1069 },
+      "warning": "Using pool priors with locked pi yields negative house EV — do not price random flights."
+    }
+  },
+  "inventory": {
+    "stubs_per_flight_per_product_default": 10,
+    "stubs_per_flight_per_product_min": 3,
+    "stubs_per_flight_per_product_max": 20,
+    "stubs_per_flight_per_product_demo": 5,
+    "fomo_copy": "Limited stubs on this flight",
+    "max_payout_exposure_per_flight_product_usd": 2000,
+    "note": "max exposure ≈ inventory_cap * max(B) = inventory * 200; default 10 => $2000"
+  },
+  "portfolio_exposure_limits": {
+    "max_net_payout_exposure_per_airport_day_usd": 25000,
+    "max_net_payout_exposure_per_airline_day_usd": 40000,
+    "max_net_payout_exposure_book_day_usd": 150000,
+    "weather_watch_airport_multiplier": 0.35,
+    "correlation_cluster_cap_usd": 15000,
+    "description": "Hard caps on simultaneous open stub max-payout exposure. Weather watch airports reduce remaining capacity by multiplier."
+  },
+  "refusal_codes": {
+    "HOT": {
+      "code": "HOT",
+      "meaning": "Flight risk elevated vs underwriting prior (delay already developing, weather watch, or p_hat above soft warn).",
+      "action": "Refuse new purchases; existing stubs remain."
+    },
+    "CUTOFF": {
+      "code": "CUTOFF",
+      "meaning": "Past purchase deadline relative to scheduled departure.",
+      "default_hours_before_std": 4,
+      "demo_hours_before_std": 6,
+      "action": "Refuse new purchases."
+    },
+    "FULL": {
+      "code": "FULL",
+      "meaning": "Inventory stubs for this flight/product exhausted.",
+      "action": "Refuse new purchases."
+    },
+    "DUPLICATE": {
+      "code": "DUPLICATE",
+      "meaning": "Same user already holds an open stub for this flight+product (or same itinerary).",
+      "max_stubs_per_user_per_flight_product": 1,
+      "action": "Refuse."
+    },
+    "EXPOSURE_CAP": {
+      "code": "EXPOSURE_CAP",
+      "meaning": "Portfolio or cluster exposure limit would be exceeded.",
+      "action": "Refuse."
+    },
+    "UNDERWRITE_REJECT": {
+      "code": "UNDERWRITE_REJECT",
+      "meaning": "Flight-level p_hat exceeds p_max for selected product/tau at target lambda.",
+      "action": "Do not list or refuse purchase."
+    },
+    "CANCELLED": {
+      "code": "CANCELLED",
+      "meaning": "Flight cancelled — stub rules: refund premium (recommended MVP) or separate cancel product.",
+      "mvp_settlement": "refund_premium"
+    },
+    "DIVERTED": {
+      "code": "DIVERTED",
+      "meaning": "Diversion — Arrival product: treat as trigger at max B or manual review; Takeoff may still settle on gate-out delay.",
+      "mvp_settlement": "arrival_pay_max_B_or_review"
+    }
+  },
+  "settlement": {
+    "primary_sources_mvp": ["BTS_ASQP_proxy_delayed", "partner_flight_status_api"],
+    "production_preferred": ["Cirium", "OAG", "airline_direct"],
+    "takeoff_observe_after": "actual_gate_out_or_std_plus_tau_plus_buffer",
+    "arrival_observe_after": "actual_gate_in_or_sta_plus_tau_plus_buffer",
+    "observation_buffer_minutes": 30,
+    "dispute_window_hours": 72,
+    "auto_pay_if": "source_confidence >= high AND delay_minutes >= tau",
+    "hold_for_review_if": "source_conflict OR diversion OR gate_return"
+  },
+  "traveler_safe_wording": {
+    "avoid": ["insurance", "gamble", "bet", "odds", "policy", "claim", "premium (in UI)", "actuarial"],
+    "prefer": ["stub", "payout", "delay cushion", "flight credit-style protection", "locked price", "limited stubs"],
+    "never_show_in_ui": ["tau", "threshold minutes as underwriting jargon", "lambda", "house edge", "p_hat"]
+  },
+  "future_depositor_pool": {
+    "enabled": false,
+    "concept": "Depositors post capital; house edge (lambda - 1) can be shared after reserve; depositors inherit residual after traveler payouts and ops fee.",
+    "suggested_split_of_edge": { "house_ops_fee": 0.40, "depositor_yield": 0.50, "reserve": 0.10 }
+  }
+}
