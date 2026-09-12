@@ -1,863 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Late Gate — Parametric Flight-Delay Stubs: Data Landscape, Pricing Model, and Risk Controls</title>
 <style>
-
-@page {
-  size: letter;
-  margin: 1in;
-}
-html { font-size: 11pt; }
+@page { size: letter; margin: 1in; }
+html { background: #5a5a5a; }
 body {
   margin: 0;
-  padding: 0;
-  background: #fff;
-  color: #000;
-  font-family: "Times New Roman", Times, "Liberation Serif", "Nimbus Roman", serif;
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
+  font-size: 11pt;
   line-height: 1.45;
+  color: #111;
 }
-article {
-  max-width: 6.5in;
-  margin: 0 auto;
+.page {
+  width: 8.5in;
+  margin: 24px auto;
   padding: 1in;
   background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,.4);
 }
 @media print {
-  article { max-width: none; padding: 0; margin: 0; }
-  a { color: #000; text-decoration: none; }
+  html { background: #fff; }
+  .page { margin: 0; box-shadow: none; width: auto; padding: 0; }
 }
-.titlepage {
-  text-align: center;
-  margin: 0 0 1.75em;
-}
-.titlepage h1 {
+h1.title {
   font-size: 16pt;
   font-weight: 700;
-  line-height: 1.3;
-  margin: 0 0 0.7em;
-}
-.titlepage .meta {
-  font-size: 11pt;
-  margin: 0.25em 0;
-}
-.titlepage .rule {
-  border: 0;
-  border-top: 1px solid #000;
-  width: 45%;
-  margin: 1.1em auto 0;
-}
-#paper > h2:first-of-type {
   text-align: center;
-  font-variant: small-caps;
-  letter-spacing: 0.04em;
-  font-size: 12pt;
-  margin-top: 0.4em;
+  margin: 0 0 0.55em;
+  line-height: 1.25;
 }
-#paper > h2:first-of-type + p,
-#paper > h2:first-of-type + p + p {
-  margin-left: 0.4in;
-  margin-right: 0.4in;
+.meta {
+  text-align: center;
+  font-size: 10pt;
+  margin-bottom: 1em;
 }
-h2 {
-  font-size: 13pt;
-  font-weight: 700;
-  margin: 1.45em 0 0.5em;
-  page-break-after: avoid;
-}
-h3 {
-  font-size: 11.5pt;
-  font-weight: 700;
-  font-style: italic;
-  margin: 1.1em 0 0.4em;
-  page-break-after: avoid;
-}
-p { margin: 0.55em 0; text-align: justify; }
-a { color: #000; text-decoration: underline; }
-ul, ol { margin: 0.4em 0 0.7em 1.25em; padding: 0; }
-li { margin: 0.18em 0; }
-hr {
-  border: 0;
+.meta div { margin: 0.12em 0; }
+hr.rule {
+  border: none;
   border-top: 1px solid #000;
-  margin: 1.2em 0;
+  margin: 1em 0;
 }
+.content h1 { font-size: 12pt; margin: 1.35em 0 0.45em; page-break-after: avoid; }
+.content h2 { font-size: 11.5pt; margin: 1.15em 0 0.4em; page-break-after: avoid; }
+.content h3 { font-size: 11pt; font-style: italic; font-weight: 700; margin: 1em 0 0.35em; }
+.content h4 { font-size: 11pt; margin: 0.85em 0 0.3em; }
+p { margin: 0 0 0.65em; text-align: justify; }
+ul, ol { margin: 0 0 0.65em; padding-left: 1.35em; }
+li { margin: 0.15em 0; }
 table {
   width: 100%;
   border-collapse: collapse;
+  margin: 0.7em 0 0.9em;
   font-size: 10pt;
-  margin: 0.65em 0 0.9em;
   page-break-inside: avoid;
 }
 th, td {
-  border: 1px solid #000;
-  padding: 0.22em 0.35em;
-  text-align: left;
+  border: 1px solid #333;
+  padding: 0.25em 0.4em;
   vertical-align: top;
+  text-align: left;
 }
-th { font-weight: 700; }
-code {
+th { background: #f2f2f2; font-weight: 700; }
+code { font-family: "Courier New", Courier, monospace; font-size: 9.5pt; }
+pre {
   font-family: "Courier New", Courier, monospace;
-  font-size: 0.88em;
+  font-size: 9pt;
+  background: #f6f6f6;
+  border: 1px solid #ccc;
+  padding: 0.55em 0.7em;
+  overflow-x: auto;
+  page-break-inside: avoid;
 }
-.math { font-style: italic; white-space: nowrap; }
-.math sub, .display-math sub { font-style: normal; }
-.display-math {
-  display: block;
-  text-align: center;
-  font-style: italic;
-  margin: 0.9em 0;
-}
-.page-break { page-break-before: always; break-before: page; }
-.source-note {
-  margin-top: 2em;
+a { color: #000; text-decoration: underline; }
+.footer-note {
+  margin-top: 1.8em;
   padding-top: 0.5em;
   border-top: 1px solid #000;
-  font-size: 9.5pt;
+  font-size: 9pt;
 }
-
 </style>
 </head>
 <body>
-<article>
-  <header class="titlepage">
-    <h1>Late Gate — Parametric Flight-Delay Stubs:<br />Data Landscape, Pricing Model, and Risk Controls</h1>
-    <p class="meta"><strong>Company technical paper</strong> · Version 2026-09-12.eng-lock.v1</p>
-    <p class="meta"><strong>Status:</strong> Internal Eng / Product · Publishable Eng tone</p>
-    <p class="meta"><strong>Pricing lock:</strong> Takeoff π = <strong>$14</strong>; Arrival π = <strong>$9</strong>; B(30/45/60) = <strong>$100 / $150 / $200</strong> (both products). Fixed premium; scaled payout. τ internal only.</p>
-    <hr class="rule" />
-  </header>
-  <section id="paper">
-<h2 id="abstract-overview">Abstract / Overview</h2>
+<article class="page">
+  <h1 class="title">Late Gate — Parametric Flight-Delay Stubs: Data Landscape, Pricing Model, and Risk Controls</h1>
+  <div class="meta">
+    <div>Late Gate Engineering · Internal technical paper</div>
+    <div>Version 2026-09-12.eng-lock.v1 · 12 September 2026</div>
+  </div>
+  <hr class="rule"/>
+  <div class="content">
+<p><strong>Company technical paper</strong> · Version 2026-09-12.eng-lock.v1 <strong>Status:</strong> Internal Eng / Product · Publishable Eng tone <strong>Pricing lock:</strong> Takeoff π = <strong>$14</strong>; Arrival π = <strong>$9</strong>; B(30/45/60) = <strong>$100 / $150 / $200</strong> (both products). Fixed premium; scaled payout. τ internal only.</p>
+<hr class="rule"/>
+<h2>Abstract / Overview</h2>
 <p>Late Gate offers travelers limited-inventory <strong>parametric stubs</strong> on two outcomes per flight: <strong>Takeoff delay</strong> and <strong>Arrival delay</strong>. The traveler selects a delay-buffer tier; the stub pays a fixed cash amount if observed schedule delay meets or exceeds an internal threshold. The house is the sole counterparty in the MVP.</p>
 <p>This paper (1) surveys public and commercial flight-performance data sources; (2) maps gate vs runway delay definitions to Late Gate products; (3) reports empirical US delay rates at 15/30/45/60 minutes from Bureau of Transportation Statistics (BTS) microdata; (4) specifies a pricing model with load λ and house EV; (5) shows that the <strong>locked Eng premiums are underwater at US pool-average probabilities</strong> and therefore must be paired with <strong>selective underwriting</strong>; (6) defines inventory, adverse-selection, correlation, and settlement controls; and (7) notes traveler-safe wording and a future depositor-pool sketch.</p>
 <p><strong>Key empirical result (BTS Reporting Carrier OTP, Jan + Jul 2024, operated non-cancelled non-diverted, n ≈ 1.14M):</strong></p>
 <table>
-<thead>
-<tr>
-<th>Product proxy</th>
-<th>P(≥30 min)</th>
-<th>P(≥45)</th>
-<th>P(≥60)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Departure / Takeoff (<code>DepDelay</code>)</td>
-<td><strong>18.33%</strong></td>
-<td><strong>13.61%</strong></td>
-<td><strong>10.50%</strong></td>
-</tr>
-<tr>
-<td>Arrival (<code>ArrDelay</code>)</td>
-<td><strong>18.66%</strong></td>
-<td><strong>13.83%</strong></td>
-<td><strong>10.69%</strong></td>
-</tr>
-</tbody>
+<tr><th>Product proxy</th><th>P(≥30 min)</th><th>P(≥45)</th><th>P(≥60)</th></tr>
+<tr><td>Departure / Takeoff (<code>DepDelay</code>)</td><td><strong>18.33%</strong></td><td><strong>13.61%</strong></td><td><strong>10.50%</strong></td></tr>
+<tr><td>Arrival (<code>ArrDelay</code>)</td><td><strong>18.66%</strong></td><td><strong>13.83%</strong></td><td><strong>10.69%</strong></td></tr>
 </table>
-<p>At locked π and B, expected payout on a <strong>random</strong> US flight exceeds premium (house EV &lt; 0). Positive house EV is restored on a <strong>clean demo / selectively underwritten</strong> book (e.g. <span class="math">p̂<sub>30/45/60</sub> ≈ 8%/5%/3.5%</span>).</p>
-<hr>
-<h2 id="1-data-landscape">1. Data landscape</h2>
-<h3 id="11-bts-airline-on-time-performance-primary-free-us-prior">1.1 BTS Airline On-Time Performance (primary free US prior)</h3>
+<p>At locked π and B, expected payout on a <strong>random</strong> US flight exceeds premium (house EV &lt; 0). Positive house EV is restored on a <strong>clean demo / selectively underwritten</strong> book (e.g. \(\hat{p}_{30/45/60} \approx 8\%/5\%/3.5\%\)).</p>
+<hr class="rule"/>
+<h2>1. Data landscape</h2>
+<h3>1.1 BTS Airline On-Time Performance (primary free US prior)</h3>
 <ul>
 <li><strong>Coverage:</strong> US domestic nonstop flights of reporting carriers (≥0.5% of domestic scheduled passenger revenues).</li>
 <li><strong>Fields:</strong> Scheduled/actual gate times, <code>DepDelay</code> / <code>ArrDelay</code>, 15-minute flags, delay-cause minutes, taxi, wheels-off/on, cancellations, diversions, O&amp;D, distance, carrier.</li>
 <li><strong>Cadence:</strong> Monthly; typically lagged ~1–2 months.</li>
 <li><strong>Access / license:</strong> Free public download (TranStats prezipped ZIPs). US government statistical data.</li>
 <li><strong>URLs:</strong>  </li>
-<li><a href="https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;amp;QO_VQ=EFD">https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;amp;QO_VQ=EFD</a>  </li>
-<li><a href="https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&amp;amp;QO_fu146_anzr=b0-gvzr">https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&amp;amp;QO_fu146_anzr=b0-gvzr</a>  </li>
-<li>Prezip pattern: <code><a href="https://transtats.bts.gov/PREZIP/On_Time_Reporting_Carrier_On_Time_Performance_1987_present_YYYY_M.zip">https://transtats.bts.gov/PREZIP/On_Time_Reporting_Carrier_On_Time_Performance_1987_present_YYYY_M.zip</a></code></li>
 </ul>
-<h3 id="12-eurocontrol-coda-europe">1.2 EUROCONTROL CODA (Europe)</h3>
+<p>- https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;QO_VQ=EFD - https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&amp;QO_fu146_anzr=b0-gvzr - Prezip pattern: <code>https://transtats.bts.gov/PREZIP/On_Time_Reporting_Carrier_On_Time_Performance_1987_present_YYYY_M.zip</code></p>
+<h3>1.2 EUROCONTROL CODA (Europe)</h3>
 <ul>
 <li>All-causes delay and punctuality for ECAC IFR traffic; monthly briefs + annual Digest.</li>
-<li>2024: ~72.4% arrivals within 15 min of STA (≈27.6% &gt;15); avg delay ≈17.5 min/flight.<br>
-  <a href="https://www.eurocontrol.int/publication/all-causes-delays-air-transport-europe-annual-2024">https://www.eurocontrol.int/publication/all-causes-delays-air-transport-europe-annual-2024</a>  </li>
-<li>2025 review: arrival punctuality 76.1%; departure 70.1%; avg departure delay 14.6 min.<br>
-  <a href="https://www.eurocontrol.int/sites/default/files/2026-01/eurocontrol-european-aviation-overview-20260123-2025-review.pdf">https://www.eurocontrol.int/sites/default/files/2026-01/eurocontrol-european-aviation-overview-20260123-2025-review.pdf</a>  </li>
-<li>Monthly band charts publish Del 16–30 / 31–60 / &gt;60 shares (e.g. Sep 2025 &gt;30 min: dep 18.3%, arr 16.5%).<br>
-  <a href="https://www.eurocontrol.int/sites/default/files/2025-10/eurocontrol-all-causes-delay-to-air-transport-september-2025.pdf">https://www.eurocontrol.int/sites/default/files/2025-10/eurocontrol-all-causes-delay-to-air-transport-september-2025.pdf</a></li>
+<li>2024: ~72.4% arrivals within 15 min of STA (≈27.6% &gt;15); avg delay ≈17.5 min/flight.  </li>
 </ul>
-<h3 id="13-cirium-sky-api-commercial-settlement-candidate">1.3 Cirium Sky API (commercial — settlement candidate)</h3>
-<p>Global status, gate/runway delays, historical status (contract). Trial / PAYG / contract. Terms restrict passenger-rights claim use.<br>
-<a href="https://developer.cirium.com/apis/cirium-sky-api/subscriptions">https://developer.cirium.com/apis/cirium-sky-api/subscriptions</a></p>
-<h3 id="14-oag-flight-status-commercial">1.4 OAG Flight Status (commercial)</h3>
-<p>Near-real-time gate &amp; runway times, delays, cancellations, diversions; API / alerts / Snowflake. Quote-based.<br>
-<a href="https://www.oag.com/flight-status-data">https://www.oag.com/flight-status-data</a></p>
-<h3 id="15-faa-aspm-asqp">1.5 FAA ASPM / ASQP</h3>
-<p>US airport and carrier metrics; gate out/in, wheels off/on. Aggregates partly public; flight-level often login-gated.<br>
-<a href="https://aspmhelp.faa.gov/index/Aviation_System_Performance_Metrics_(ASPM).html">https://aspmhelp.faa.gov/index/Aviation_System_Performance_Metrics_(ASPM).html</a><br>
-<a href="https://aspmhelp.faa.gov/index/ASQP__Definitions_of_Variables.html">https://aspmhelp.faa.gov/index/ASQP__Definitions_of_Variables.html</a></p>
-<h3 id="16-opensky-network">1.6 OpenSky Network</h3>
-<p>ADS-B tracking — <strong>not</strong> CRS schedule delay. Research free under terms; commercial / operational use requires license.<br>
-<a href="https://opensky-network.org/about/terms-of-use">https://opensky-network.org/about/terms-of-use</a></p>
-<h3 id="17-blockers">1.7 Blockers</h3>
+<p>https://www.eurocontrol.int/publication/all-causes-delays-air-transport-europe-annual-2024</p>
+<ul>
+<li>2025 review: arrival punctuality 76.1%; departure 70.1%; avg departure delay 14.6 min.  </li>
+</ul>
+<p>https://www.eurocontrol.int/sites/default/files/2026-01/eurocontrol-european-aviation-overview-20260123-2025-review.pdf</p>
+<ul>
+<li>Monthly band charts publish Del 16–30 / 31–60 / &gt;60 shares (e.g. Sep 2025 &gt;30 min: dep 18.3%, arr 16.5%).  </li>
+</ul>
+<p>https://www.eurocontrol.int/sites/default/files/2025-10/eurocontrol-all-causes-delay-to-air-transport-september-2025.pdf</p>
+<h3>1.3 Cirium Sky API (commercial — settlement candidate)</h3>
+<p>Global status, gate/runway delays, historical status (contract). Trial / PAYG / contract. Terms restrict passenger-rights claim use. https://developer.cirium.com/apis/cirium-sky-api/subscriptions</p>
+<h3>1.4 OAG Flight Status (commercial)</h3>
+<p>Near-real-time gate &amp; runway times, delays, cancellations, diversions; API / alerts / Snowflake. Quote-based. https://www.oag.com/flight-status-data</p>
+<h3>1.5 FAA ASPM / ASQP</h3>
+<p>US airport and carrier metrics; gate out/in, wheels off/on. Aggregates partly public; flight-level often login-gated. https://aspmhelp.faa.gov/index/Aviation_System_Performance_Metrics_(ASPM).html https://aspmhelp.faa.gov/index/ASQP__Definitions_of_Variables.html</p>
+<h3>1.6 OpenSky Network</h3>
+<p>ADS-B tracking — <strong>not</strong> CRS schedule delay. Research free under terms; commercial / operational use requires license. https://opensky-network.org/about/terms-of-use</p>
+<h3>1.7 Blockers</h3>
 <p>Cirium/OAG paywalled (needed for live settlement). BTS Excel summary tables often blocked to datacenter IPs (prezip CSVs work). OpenSky unsuitable as sole settlement oracle for schedule delay.</p>
-<hr>
-<h2 id="2-delay-definitions-and-product-mapping">2. Delay definitions and product mapping</h2>
+<hr class="rule"/>
+<h2>2. Delay definitions and product mapping</h2>
 <table>
-<thead>
-<tr>
-<th>Industry metric</th>
-<th>Definition</th>
-<th>Late Gate product</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Gate departure delay</td>
-<td>Actual gate-out − scheduled dep (BTS <code>DepDelay</code>)</td>
-<td><strong>Takeoff delay</strong></td>
-</tr>
-<tr>
-<td>Wheels-off delay</td>
-<td>Runway liftoff − schedule (or vs gate-out + taxi)</td>
-<td>Not primary trigger</td>
-</tr>
-<tr>
-<td>Gate arrival delay</td>
-<td>Actual gate-in − scheduled arr (BTS <code>ArrDelay</code>)</td>
-<td><strong>Arrival delay</strong></td>
-</tr>
-<tr>
-<td>Wheels-on / block</td>
-<td>Touchdown / in-block variants</td>
-<td>Not primary</td>
-</tr>
-<tr>
-<td>BTS “late flight”</td>
-<td>≥15 minutes gate late</td>
-<td>Reporting standard only</td>
-</tr>
-</tbody>
+<tr><th>Industry metric</th><th>Definition</th><th>Late Gate product</th></tr>
+<tr><td>Gate departure delay</td><td>Actual gate-out − scheduled dep (BTS <code>DepDelay</code>)</td><td><strong>Takeoff delay</strong></td></tr>
+<tr><td>Wheels-off delay</td><td>Runway liftoff − schedule (or vs gate-out + taxi)</td><td>Not primary trigger</td></tr>
+<tr><td>Gate arrival delay</td><td>Actual gate-in − scheduled arr (BTS <code>ArrDelay</code>)</td><td><strong>Arrival delay</strong></td></tr>
+<tr><td>Wheels-on / block</td><td>Touchdown / in-block variants</td><td>Not primary</td></tr>
+<tr><td>BTS “late flight”</td><td>≥15 minutes gate late</td><td>Reporting standard only</td></tr>
 </table>
-<p>BTS: gate departure is parking-brake release / door close (with specified gate-return rules).<br>
-<a href="https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;amp;QO_VQ=EFD">https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;amp;QO_VQ=EFD</a></p>
+<p>BTS: gate departure is parking-brake release / door close (with specified gate-return rules). https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;QO_VQ=EFD</p>
 <p><strong>Recommendation:</strong> Settle Takeoff on <strong>gate-out vs published STD</strong>; Arrival on <strong>gate-in vs published STA</strong>. Traveler-facing “Takeoff delay” means departure lateness from schedule, not wheels-up. <strong>Never display τ minutes in UI.</strong></p>
-<hr>
-<h2 id="3-empirical-rates">3. Empirical rates</h2>
-<h3 id="31-us-15-minutes-published">3.1 US ≥15 minutes (published)</h3>
-<p>BTS Table 1A / TranStats (reporting carriers): late arrivals/departures ≈ <strong>20.3%</strong> (2023), ≈ <strong>20.4–20.5%</strong> (2024). Marketing-carrier arrival delay ≈20.2% (2025 chart series).<br>
-Sources: TranStats home drill / Marketing Annual; Table 1A xlsx on bts.gov (search-indexed extracts).</p>
-<h3 id="32-us-304560-this-study-bts-microdata">3.2 US ≥30/45/60 — this study (BTS microdata)</h3>
+<hr class="rule"/>
+<h2>3. Empirical rates</h2>
+<h3>3.1 US ≥15 minutes (published)</h3>
+<p>BTS Table 1A / TranStats (reporting carriers): late arrivals/departures ≈ <strong>20.3%</strong> (2023), ≈ <strong>20.4–20.5%</strong> (2024). Marketing-carrier arrival delay ≈20.2% (2025 chart series). Sources: TranStats home drill / Marketing Annual; Table 1A xlsx on bts.gov (search-indexed extracts).</p>
+<h3>3.2 US ≥30/45/60 — this study (BTS microdata)</h3>
 <p><strong>Method:</strong> Download TranStats Reporting Carrier OTP for <strong>2024-01</strong> and <strong>2024-07</strong>; filter <code>Cancelled=0</code>, <code>Diverted=0</code>; compute share with <code>DepDelay</code> / <code>ArrDelay</code> ≥ τ.</p>
 <table>
-<thead>
-<tr>
-<th>Period</th>
-<th>Dep ≥30</th>
-<th>Dep ≥45</th>
-<th>Dep ≥60</th>
-<th>Arr ≥30</th>
-<th>Arr ≥45</th>
-<th>Arr ≥60</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Jan 2024</td>
-<td>15.47%</td>
-<td>11.27%</td>
-<td>8.57%</td>
-<td>15.94%</td>
-<td>11.54%</td>
-<td>8.78%</td>
-</tr>
-<tr>
-<td>Jul 2024</td>
-<td>20.77%</td>
-<td>15.61%</td>
-<td>12.15%</td>
-<td>20.99%</td>
-<td>15.80%</td>
-<td>12.32%</td>
-</tr>
-<tr>
-<td><strong>Weighted</strong></td>
-<td><strong>18.33%</strong></td>
-<td><strong>13.61%</strong></td>
-<td><strong>10.50%</strong></td>
-<td><strong>18.66%</strong></td>
-<td><strong>13.83%</strong></td>
-<td><strong>10.69%</strong></td>
-</tr>
-</tbody>
+<tr><th>Period</th><th>Dep ≥30</th><th>Dep ≥45</th><th>Dep ≥60</th><th>Arr ≥30</th><th>Arr ≥45</th><th>Arr ≥60</th></tr>
+<tr><td>Jan 2024</td><td>15.47%</td><td>11.27%</td><td>8.57%</td><td>15.94%</td><td>11.54%</td><td>8.78%</td></tr>
+<tr><td>Jul 2024</td><td>20.77%</td><td>15.61%</td><td>12.15%</td><td>20.99%</td><td>15.80%</td><td>12.32%</td></tr>
+<tr><td><strong>Weighted</strong></td><td><strong>18.33%</strong></td><td><strong>13.61%</strong></td><td><strong>10.50%</strong></td><td><strong>18.66%</strong></td><td><strong>13.83%</strong></td><td><strong>10.69%</strong></td></tr>
 </table>
 <p>Artifacts: <code>data/empirical_delay_rates_*.csv</code>, <code>figures/empirical_delay_cdf.png</code>.</p>
 <p><strong>Caveats:</strong> Two months only; summer worse; cancellations/diversions excluded from CDF (need separate rules); not conditioned on purchase timing (adverse selection).</p>
-<h3 id="33-heterogeneity-jul-2024-departures-p30">3.3 Heterogeneity (Jul 2024 departures, p≥30)</h3>
+<h3>3.3 Heterogeneity (Jul 2024 departures, p≥30)</h3>
 <table>
-<thead>
-<tr>
-<th>Split</th>
-<th>Low</th>
-<th>High</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Airline</td>
-<td>HA 6.6%</td>
-<td>AA 28.9%</td>
-</tr>
-<tr>
-<td>Dep time block</td>
-<td>0600–0659 7.6%</td>
-<td>2000–2059 35.6%</td>
-</tr>
-<tr>
-<td>Origin (top volume)</td>
-<td>SEA 14.5%</td>
-<td>CLT 35.9%</td>
-</tr>
-<tr>
-<td>DOW</td>
-<td>Thu 17.5%</td>
-<td>Fri 25.7%</td>
-</tr>
-</tbody>
+<tr><th>Split</th><th>Low</th><th>High</th></tr>
+<tr><td>Airline</td><td>HA 6.6%</td><td>AA 28.9%</td></tr>
+<tr><td>Dep time block</td><td>0600–0659 7.6%</td><td>2000–2059 35.6%</td></tr>
+<tr><td>Origin (top volume)</td><td>SEA 14.5%</td><td>CLT 35.9%</td></tr>
+<tr><td>DOW</td><td>Thu 17.5%</td><td>Fri 25.7%</td></tr>
 </table>
 <p>Full tables: <code>data/empirical_delay_splits_jul2024.csv</code>.</p>
-<h3 id="34-europe-published-aggregates">3.4 Europe (published aggregates)</h3>
+<h3>3.4 Europe (published aggregates)</h3>
 <p>EUROCONTROL: &gt;15 min arrivals ~24–28% depending on year; monthly &gt;30 min often mid-teens (e.g. Dec 2024 arr 13.7%; Sep 2025 arr 16.5%). Exact annual EU p≥45/60 not published as a single scalar in materials reviewed — treat as <strong>unknown</strong> pending CODA microdata or Cirium/OAG.</p>
-<hr>
-<h2 id="4-pricing-model">4. Pricing model</h2>
-<h3 id="41-contract">4.1 Contract</h3>
-<p>For product <span class="math">k ∈ {TAKEOFF,ARRIVAL}</span> and traveler-selected internal threshold <span class="math">τ ∈ {30,45,60}</span>:</p>
-<div class="display-math">Payout = B(τ)·1{D<sub>k</sub> ≥ τ},   
-B(30)=100,  B(45)=150,  B(60)=200</div>
-<p>Premium <span class="math">π<sub>k</sub></span> is <strong>fixed</strong> per product (not per τ):</p>
-<div class="display-math">π<sub>TAKEOFF</sub> = 14,   π<sub>ARRIVAL</sub> = 9</div>
-<p>Expected payout: <span class="math">E[payout] = p<sub>k</sub>(τ)· B(τ)</span> where <span class="math">p<sub>k</sub>(τ)=P(D<sub>k</sub>≥τ)</span>.</p>
-<h3 id="42-load-and-house-ev">4.2 Load and house EV</h3>
-<div class="display-math">π = λ · E[payout] = λ · p· B
-  ⇒  
-EV<sub>house</sub> = π - p· B</div>
-<p><strong>Target λ = 1.45</strong> on the underwritten book (includes ~20pp adverse-selection / ops buffer vs pure fair odds λ=1). Traveler “fair odds” relative to estimated <span class="math">p</span> means transparent load: fair premium would be <span class="math">p· B</span>; traveler pays <span class="math">λ· p· B</span> when π is set by underwriting, or equivalently only flights with <span class="math">p ≤ π/(λ B)</span> are sold at locked π.</p>
-<h3 id="43-validation-of-eng-lock-vs-data">4.3 Validation of Eng lock vs data</h3>
-<p><strong>Pool-average <span class="math">p</span> (weighted Jan+Jul 2024):</strong></p>
+<hr class="rule"/>
+<h2>4. Pricing model</h2>
+<h3>4.1 Contract</h3>
+<p>For product \(k \in \{\mathrm{TAKEOFF},\mathrm{ARRIVAL}\}\) and traveler-selected internal threshold \(\tau \in \{30,45,60\}\):</p>
+<p>\[ \text{Payout} = B(\tau)\cdot\mathbf{1}\{D_k \ge \tau\}, \qquad B(30)=100,\; B(45)=150,\; B(60)=200 \]</p>
+<p>Premium \(\pi_k\) is <strong>fixed</strong> per product (not per τ):</p>
+<p>\[ \pi_{\mathrm{TAKEOFF}} = 14,\qquad \pi_{\mathrm{ARRIVAL}} = 9 \]</p>
+<p>Expected payout: \(E[\mathrm{payout}] = p_k(\tau)\cdot B(\tau)\) where \(p_k(\tau)=P(D_k\ge\tau)\).</p>
+<h3>4.2 Load and house EV</h3>
+<p>\[ \pi = \lambda \cdot E[\mathrm{payout}] = \lambda \cdot p\cdot B \qquad\Rightarrow\qquad \mathrm{EV}_{\mathrm{house}} = \pi - p\cdot B \]</p>
+<p><strong>Target λ = 1.45</strong> on the underwritten book (includes ~20pp adverse-selection / ops buffer vs pure fair odds λ=1). Traveler “fair odds” relative to estimated \(p\) means transparent load: fair premium would be \(p\cdot B\); traveler pays \(\lambda\cdot p\cdot B\) when π is set by underwriting, or equivalently only flights with \(p \le \pi/(\lambda B)\) are sold at locked π.</p>
+<h3>4.3 Validation of Eng lock vs data</h3>
+<p><strong>Pool-average \(p\) (weighted Jan+Jul 2024):</strong></p>
 <table>
-<thead>
-<tr>
-<th>Product</th>
-<th>τ</th>
-<th><span class="math">p</span></th>
-<th><span class="math">E[payout]</span></th>
-<th>π</th>
-<th>House EV</th>
-<th>Implied λ</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Takeoff</td>
-<td>30</td>
-<td>18.33%</td>
-<td>$18.33</td>
-<td>$14</td>
-<td><strong>−$4.33</strong></td>
-<td>0.76</td>
-</tr>
-<tr>
-<td>Takeoff</td>
-<td>45</td>
-<td>13.61%</td>
-<td>$20.41</td>
-<td>$14</td>
-<td><strong>−$6.41</strong></td>
-<td>0.69</td>
-</tr>
-<tr>
-<td>Takeoff</td>
-<td>60</td>
-<td>10.50%</td>
-<td>$21.00</td>
-<td>$14</td>
-<td><strong>−$7.00</strong></td>
-<td>0.67</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>30</td>
-<td>18.66%</td>
-<td>$18.66</td>
-<td>$9</td>
-<td><strong>−$9.66</strong></td>
-<td>0.48</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>45</td>
-<td>13.83%</td>
-<td>$20.75</td>
-<td>$9</td>
-<td><strong>−$11.75</strong></td>
-<td>0.43</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>60</td>
-<td>10.69%</td>
-<td>$21.38</td>
-<td>$9</td>
-<td><strong>−$12.38</strong></td>
-<td>0.42</td>
-</tr>
-</tbody>
+<tr><th>Product</th><th>τ</th><th>\(p\)</th><th>\(E[\mathrm{payout}]\)</th><th>π</th><th>House EV</th><th>Implied λ</th></tr>
+<tr><td>Takeoff</td><td>30</td><td>18.33%</td><td>$18.33</td><td>$14</td><td><strong>−$4.33</strong></td><td>0.76</td></tr>
+<tr><td>Takeoff</td><td>45</td><td>13.61%</td><td>$20.41</td><td>$14</td><td><strong>−$6.41</strong></td><td>0.69</td></tr>
+<tr><td>Takeoff</td><td>60</td><td>10.50%</td><td>$21.00</td><td>$14</td><td><strong>−$7.00</strong></td><td>0.67</td></tr>
+<tr><td>Arrival</td><td>30</td><td>18.66%</td><td>$18.66</td><td>$9</td><td><strong>−$9.66</strong></td><td>0.48</td></tr>
+<tr><td>Arrival</td><td>45</td><td>13.83%</td><td>$20.75</td><td>$9</td><td><strong>−$11.75</strong></td><td>0.43</td></tr>
+<tr><td>Arrival</td><td>60</td><td>10.69%</td><td>$21.38</td><td>$9</td><td><strong>−$12.38</strong></td><td>0.42</td></tr>
 </table>
-<p><strong>Decision:</strong> Retain Eng π/B as <strong>locked baseline</strong> for product UX and Rails constants. <strong>Do not</strong> sell at these prices on pool-average risk. Enforce λ via flight-level <span class="math">p̂</span> gates.</p>
-<h3 id="44-underwriting-gates-p_max">4.4 Underwriting gates (p_max)</h3>
-<p>At λ=1.45: <span class="math">p<sub>max</sub> = π / (λ B)</span>.</p>
+<p><strong>Decision:</strong> Retain Eng π/B as <strong>locked baseline</strong> for product UX and Rails constants. <strong>Do not</strong> sell at these prices on pool-average risk. Enforce λ via flight-level \(\hat{p}\) gates.</p>
+<h3>4.4 Underwriting gates (p_max)</h3>
+<p>At λ=1.45: \(p_{\max} = \pi / (\lambda B)\).</p>
 <table>
-<thead>
-<tr>
-<th>Product</th>
-<th>τ</th>
-<th><span class="math">p<sub>max</sub></span></th>
-<th>Break-even <span class="math">p</span> (λ=1)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Takeoff</td>
-<td>30</td>
-<td><strong>9.66%</strong></td>
-<td>14.00%</td>
-</tr>
-<tr>
-<td>Takeoff</td>
-<td>45</td>
-<td><strong>6.44%</strong></td>
-<td>9.33%</td>
-</tr>
-<tr>
-<td>Takeoff</td>
-<td>60</td>
-<td><strong>4.83%</strong></td>
-<td>7.00%</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>30</td>
-<td><strong>6.21%</strong></td>
-<td>9.00%</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>45</td>
-<td><strong>4.14%</strong></td>
-<td>6.00%</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>60</td>
-<td><strong>3.10%</strong></td>
-<td>4.50%</td>
-</tr>
-</tbody>
+<tr><th>Product</th><th>τ</th><th>\(p_{\max}\)</th><th>Break-even \(p\) (λ=1)</th></tr>
+<tr><td>Takeoff</td><td>30</td><td><strong>9.66%</strong></td><td>14.00%</td></tr>
+<tr><td>Takeoff</td><td>45</td><td><strong>6.44%</strong></td><td>9.33%</td></tr>
+<tr><td>Takeoff</td><td>60</td><td><strong>4.83%</strong></td><td>7.00%</td></tr>
+<tr><td>Arrival</td><td>30</td><td><strong>6.21%</strong></td><td>9.00%</td></tr>
+<tr><td>Arrival</td><td>45</td><td><strong>4.14%</strong></td><td>6.00%</td></tr>
+<tr><td>Arrival</td><td>60</td><td><strong>3.10%</strong></td><td>4.50%</td></tr>
 </table>
-<h3 id="45-clean-demo-prior-recommended">4.5 Clean demo prior (recommended)</h3>
-<p>Assume selectively listed flight with <span class="math">p̂={8%,5%,3.5%}</span> at {30,45,60}:</p>
+<h3>4.5 Clean demo prior (recommended)</h3>
+<p>Assume selectively listed flight with \(\hat{p}=\{8\%,5\%,3.5\%\}\) at {30,45,60}:</p>
 <table>
-<thead>
-<tr>
-<th>Product</th>
-<th>τ</th>
-<th><span class="math">E[payout]</span></th>
-<th>House EV</th>
-<th>λ</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Takeoff</td>
-<td>30</td>
-<td>$8.00</td>
-<td><strong>+$6.00</strong></td>
-<td>1.75</td>
-</tr>
-<tr>
-<td>Takeoff</td>
-<td>45</td>
-<td>$7.50</td>
-<td><strong>+$6.50</strong></td>
-<td>1.87</td>
-</tr>
-<tr>
-<td>Takeoff</td>
-<td>60</td>
-<td>$7.00</td>
-<td><strong>+$7.00</strong></td>
-<td>2.00</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>30</td>
-<td>$8.00</td>
-<td><strong>+$1.00</strong></td>
-<td>1.12</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>45</td>
-<td>$7.50</td>
-<td><strong>+$1.50</strong></td>
-<td>1.20</td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>60</td>
-<td>$7.00</td>
-<td><strong>+$2.00</strong></td>
-<td>1.29</td>
-</tr>
-</tbody>
+<tr><th>Product</th><th>τ</th><th>\(E[\mathrm{payout}]\)</th><th>House EV</th><th>λ</th></tr>
+<tr><td>Takeoff</td><td>30</td><td>$8.00</td><td><strong>+$6.00</strong></td><td>1.75</td></tr>
+<tr><td>Takeoff</td><td>45</td><td>$7.50</td><td><strong>+$6.50</strong></td><td>1.87</td></tr>
+<tr><td>Takeoff</td><td>60</td><td>$7.00</td><td><strong>+$7.00</strong></td><td>2.00</td></tr>
+<tr><td>Arrival</td><td>30</td><td>$8.00</td><td><strong>+$1.00</strong></td><td>1.12</td></tr>
+<tr><td>Arrival</td><td>45</td><td>$7.50</td><td><strong>+$1.50</strong></td><td>1.20</td></tr>
+<tr><td>Arrival</td><td>60</td><td>$7.00</td><td><strong>+$2.00</strong></td><td>1.29</td></tr>
 </table>
 <p>Arrival at $9 is tight (λ≈1.1–1.3 on this prior). Prefer morning / historically clean flights for Arrival inventory.</p>
-<h3 id="46-alternatives-if-eng-reopens-pricing-not-locked">4.6 Alternatives if Eng reopens pricing (not locked)</h3>
+<h3>4.6 Alternatives if Eng reopens pricing (not locked)</h3>
 <p>For <strong>unselective</strong> US pool book at λ=1.45 and current B: π ≈ <strong>$27–$31</strong> both products. Or keep π and reduce B to ~$30–$55 (poor UX). <strong>Recommendation:</strong> keep locked π/B + selection for demo; revisit risk-based π later.</p>
-<hr>
-<h2 id="5-risk-controls">5. Risk controls</h2>
-<h3 id="51-inventory-caps-fomo">5.1 Inventory caps (FOMO)</h3>
+<hr class="rule"/>
+<h2>5. Risk controls</h2>
+<h3>5.1 Inventory caps (FOMO)</h3>
 <ul>
 <li>Default <strong>10</strong> stubs per flight per product (demo <strong>5</strong>; max 20).</li>
 <li>Max payout exposure ≈ inventory × $200 (default <strong>$2,000</strong> / flight×product).</li>
 </ul>
-<h3 id="52-adverse-selection-operational-codes">5.2 Adverse selection — operational codes</h3>
+<h3>5.2 Adverse selection — operational codes</h3>
 <table>
-<thead>
-<tr>
-<th>Code</th>
-<th>Rule</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>HOT</strong></td>
-<td>Freeze new sales if delay already developing, weather watch, or soft <span class="math">p̂</span> warn</td>
-</tr>
-<tr>
-<td><strong>CUTOFF</strong></td>
-<td>No sales inside <strong>4h</strong> of STD (demo <strong>6h</strong>)</td>
-</tr>
-<tr>
-<td><strong>FULL</strong></td>
-<td>Inventory exhausted</td>
-</tr>
-<tr>
-<td><strong>DUPLICATE</strong></td>
-<td>Max <strong>1</strong> open stub per user per flight×product</td>
-</tr>
-<tr>
-<td><strong>UNDERWRITE_REJECT</strong></td>
-<td><span class="math">p̂ &gt; p<sub>max</sub></span> for product×τ</td>
-</tr>
-<tr>
-<td><strong>EXPOSURE_CAP</strong></td>
-<td>Portfolio / cluster limit hit</td>
-</tr>
-<tr>
-<td><strong>CANCELLED</strong></td>
-<td>MVP: refund premium</td>
-</tr>
-<tr>
-<td><strong>DIVERTED</strong></td>
-<td>Arrival: pay max B or review</td>
-</tr>
-</tbody>
+<tr><th>Code</th><th>Rule</th></tr>
+<tr><td><strong>HOT</strong></td><td>Freeze new sales if delay already developing, weather watch, or soft \(\hat{p}\) warn</td></tr>
+<tr><td><strong>CUTOFF</strong></td><td>No sales inside <strong>4h</strong> of STD (demo <strong>6h</strong>)</td></tr>
+<tr><td><strong>FULL</strong></td><td>Inventory exhausted</td></tr>
+<tr><td><strong>DUPLICATE</strong></td><td>Max <strong>1</strong> open stub per user per flight×product</td></tr>
+<tr><td><strong>UNDERWRITE_REJECT</strong></td><td>\(\hat{p} &gt; p_{\max}\) for product×τ</td></tr>
+<tr><td><strong>EXPOSURE_CAP</strong></td><td>Portfolio / cluster limit hit</td></tr>
+<tr><td><strong>CANCELLED</strong></td><td>MVP: refund premium</td></tr>
+<tr><td><strong>DIVERTED</strong></td><td>Arrival: pay max B or review</td></tr>
 </table>
-<h3 id="53-correlation-weather-portfolio">5.3 Correlation / weather / portfolio</h3>
+<h3>5.3 Correlation / weather / portfolio</h3>
 <ul>
 <li>Caps: airport-day $25k; airline-day $40k; book-day $150k; cluster $15k (max simultaneous payout exposure).</li>
 <li>Weather-watch airports: remaining capacity × <strong>0.35</strong>.</li>
 <li>Prefer diversifying away from single-hub evening banks.</li>
 </ul>
-<h3 id="54-why-controls-matter-for-ev">5.4 Why controls matter for EV</h3>
-<p>Purchase timing correlates with information about delay. CUTOFF + HOT shrink adverse selection so realized <span class="math">p</span> on sold stubs approaches (or stays under) underwriting <span class="math">p̂</span>. Without them, locked π is insufficient even on “clean” scheduled flights.</p>
-<hr>
-<h2 id="6-settlement">6. Settlement</h2>
+<h3>5.4 Why controls matter for EV</h3>
+<p>Purchase timing correlates with information about delay. CUTOFF + HOT shrink adverse selection so realized \(p\) on sold stubs approaches (or stays under) underwriting \(\hat{p}\). Without them, locked π is insufficient even on “clean” scheduled flights.</p>
+<hr class="rule"/>
+<h2>6. Settlement</h2>
 <ol>
 <li><strong>Oracle:</strong> Production — Cirium or OAG (or airline direct). MVP — partner status API; BTS for offline backtest only (lag).</li>
 <li><strong>Metric:</strong> Takeoff = gate-out delay; Arrival = gate-in delay vs published times at purchase lock.</li>
 <li><strong>Observe:</strong> After actual event or scheduled time + τ + <strong>30 min</strong> buffer.</li>
-<li><strong>Auto-pay</strong> if high-confidence source and <span class="math">D≥τ</span>; else hold.</li>
+<li><strong>Auto-pay</strong> if high-confidence source and \(D\ge\tau\); else hold.</li>
 <li><strong>Dispute window:</strong> 72 hours.</li>
 <li><strong>Cancelled:</strong> refund π (MVP). <strong>Diverted:</strong> Arrival special case.</li>
 </ol>
-<hr>
-<h2 id="7-sensitivity">7. Sensitivity</h2>
-<h3 id="71-house-ev-vs-imath24-at-locked">7.1 House EV vs <span class="math">p</span> at locked π</h3>
-<p>See <code>figures/house_ev_sensitivity.png</code>. Zero-crossing at break-even <span class="math">p=π/B</span>. Pool <span class="math">p<sub>30</sub></span> (≈18–19%) lies deep in the loss region for both products.</p>
-<h3 id="72-inventory">7.2 Inventory × λ</h3>
+<hr class="rule"/>
+<h2>7. Sensitivity</h2>
+<h3>7.1 House EV vs \(p\) at locked π</h3>
+<p>See <code>figures/house_ev_sensitivity.png</code>. Zero-crossing at break-even \(p=\pi/B\). Pool \(p_{30}\) (≈18–19%) lies deep in the loss region for both products.</p>
+<h3>7.2 Inventory × λ</h3>
 <table>
-<thead>
-<tr>
-<th>Inventory</th>
-<th>Takeoff premium income</th>
-<th>Max exposure (τ=60)</th>
-<th>Arrival premium income</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>5</td>
-<td>$70</td>
-<td>$1,000</td>
-<td>$45</td>
-</tr>
-<tr>
-<td>10</td>
-<td>$140</td>
-<td>$2,000</td>
-<td>$90</td>
-</tr>
-<tr>
-<td>20</td>
-<td>$280</td>
-<td>$4,000</td>
-<td>$180</td>
-</tr>
-</tbody>
+<tr><th>Inventory</th><th>Takeoff premium income</th><th>Max exposure (τ=60)</th><th>Arrival premium income</th></tr>
+<tr><td>5</td><td>$70</td><td>$1,000</td><td>$45</td></tr>
+<tr><td>10</td><td>$140</td><td>$2,000</td><td>$90</td></tr>
+<tr><td>20</td><td>$280</td><td>$4,000</td><td>$180</td></tr>
 </table>
-<p>House EV scales with <span class="math">∑<sub>i</sub> (π - p<sub>i</sub> B<sub>i</sub>)</span> over sold stubs — negative if <span class="math">p<sub>i</sub></span> uncontrolled.</p>
-<h3 id="73-traveler-fair-odds-comparison-clean-demo-prior">7.3 Traveler fair-odds comparison (clean demo prior)</h3>
+<p>House EV scales with \(\sum_i (\pi - p_i B_i)\) over sold stubs — negative if \(p_i\) uncontrolled.</p>
+<h3>7.3 Traveler fair-odds comparison (clean demo prior)</h3>
 <p>For Takeoff τ=30: fair premium ≈ $8.00; traveler pays $14 → load 1.75 (pays $6 above actuarial fair for that prior). For Arrival τ=30: fair ≈ $8.00; pays $9 → load 1.12 (thin). Communicate value as <strong>certainty of payout rules + limited inventory</strong>, not “cheap odds.”</p>
-<hr>
-<h2 id="8-future-depositor-pool-optional">8. Future depositor pool (optional)</h2>
-<p>MVP: house sole counterparty. Future: depositors post capital; after traveler payouts and ops, residual edge <span class="math">(λ-1)· E[payout]</span> can be shared, e.g. 40% house ops / 50% depositor yield / 10% reserve. Depositors <strong>inherit house edge only after</strong> underwriting and reserves — they do not remove the need for <span class="math">p<sub>max</sub></span> gates. No user LP in current product.</p>
-<hr>
-<h2 id="9-traveler-safe-wording-notes">9. Traveler-safe wording notes</h2>
+<hr class="rule"/>
+<h2>8. Future depositor pool (optional)</h2>
+<p>MVP: house sole counterparty. Future: depositors post capital; after traveler payouts and ops, residual edge \((\lambda-1)\cdot E[\mathrm{payout}]\) can be shared, e.g. 40% house ops / 50% depositor yield / 10% reserve. Depositors <strong>inherit house edge only after</strong> underwriting and reserves — they do not remove the need for \(p_{\max}\) gates. No user LP in current product.</p>
+<hr class="rule"/>
+<h2>9. Traveler-safe wording notes</h2>
 <table>
-<thead>
-<tr>
-<th>Avoid (UI)</th>
-<th>Prefer</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>insurance, policy, claim, premium</td>
-<td>stub, locked price, payout</td>
-</tr>
-<tr>
-<td>gamble, bet, odds</td>
-<td>delay cushion, buffer tier</td>
-</tr>
-<tr>
-<td>show “30/45/60 minutes” as τ</td>
-<td>Short / Medium / Long buffer</td>
-</tr>
-<tr>
-<td>house edge, λ, <span class="math">p̂</span></td>
-<td>Limited stubs on this flight</td>
-</tr>
-</tbody>
+<tr><th>Avoid (UI)</th><th>Prefer</th></tr>
+<tr><td>insurance, policy, claim, premium</td><td>stub, locked price, payout</td></tr>
+<tr><td>gamble, bet, odds</td><td>delay cushion, buffer tier</td></tr>
+<tr><td>show “30/45/60 minutes” as τ</td><td>Short / Medium / Long buffer</td></tr>
+<tr><td>house edge, λ, \(\hat{p}\)</td><td>Limited stubs on this flight</td></tr>
 </table>
 <p>Paper/actuarial language is fine internally and in this document; traveler surfaces should stay assistance/ancillary-protection tone (consistent with Hopper-style “disruption assistance” framing in market), without claiming regulated insurance unless licensed.</p>
-<hr>
-<h2 id="10-references">10. References</h2>
+<hr class="rule"/>
+<h2>10. References</h2>
 <ol>
-<li>BTS Airline On-Time Performance Database — <a href="https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;amp;QO_VQ=EFD">https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;amp;QO_VQ=EFD</a>  </li>
-<li>BTS Download (Reporting Carrier) — <a href="https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&amp;amp;QO_fu146_anzr=b0-gvzr">https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&amp;amp;QO_fu146_anzr=b0-gvzr</a>  </li>
-<li>BTS TranStats annual charts — <a href="https://www.transtats.bts.gov/homedrillchart.asp">https://www.transtats.bts.gov/homedrillchart.asp</a>  </li>
-<li>BTS Marketing Carrier Annual — <a href="https://www.transtats.bts.gov/Marketing_Annual.aspx">https://www.transtats.bts.gov/Marketing_Annual.aspx</a>  </li>
-<li>BTS on-time gallery — <a href="https://www.bts.gov/browse-statistical-products-and-data/info-gallery/percent-time-flight-departures-and-arrivals">https://www.bts.gov/browse-statistical-products-and-data/info-gallery/percent-time-flight-departures-and-arrivals</a>  </li>
-<li>EUROCONTROL CODA Digest 2024 — <a href="https://www.eurocontrol.int/publication/all-causes-delays-air-transport-europe-annual-2024">https://www.eurocontrol.int/publication/all-causes-delays-air-transport-europe-annual-2024</a>  </li>
-<li>EUROCONTROL Sep 2025 delay brief PDF — <a href="https://www.eurocontrol.int/sites/default/files/2025-10/eurocontrol-all-causes-delay-to-air-transport-september-2025.pdf">https://www.eurocontrol.int/sites/default/files/2025-10/eurocontrol-all-causes-delay-to-air-transport-september-2025.pdf</a>  </li>
-<li>EUROCONTROL 2025 review PDF — <a href="https://www.eurocontrol.int/sites/default/files/2026-01/eurocontrol-european-aviation-overview-20260123-2025-review.pdf">https://www.eurocontrol.int/sites/default/files/2026-01/eurocontrol-european-aviation-overview-20260123-2025-review.pdf</a>  </li>
-<li>FAA ASQP definitions — <a href="https://aspmhelp.faa.gov/index/ASQP__Definitions_of_Variables.html">https://aspmhelp.faa.gov/index/ASQP__Definitions_of_Variables.html</a>  </li>
-<li>FAA ASPM overview — <a href="https://aspmhelp.faa.gov/index/Aviation_System_Performance_Metrics_(ASPM).html">https://aspmhelp.faa.gov/index/Aviation_System_Performance_Metrics_(ASPM).html</a>  </li>
-<li>Cirium Sky subscriptions — <a href="https://developer.cirium.com/apis/cirium-sky-api/subscriptions">https://developer.cirium.com/apis/cirium-sky-api/subscriptions</a>  </li>
-<li>OAG Flight Status — <a href="https://www.oag.com/flight-status-data">https://www.oag.com/flight-status-data</a>  </li>
-<li>OpenSky terms — <a href="https://opensky-network.org/about/terms-of-use">https://opensky-network.org/about/terms-of-use</a>  </li>
-<li>Wang et al. delay CCDF (arXiv) — <a href="https://ar5iv.labs.arxiv.org/html/1701.05556">https://ar5iv.labs.arxiv.org/html/1701.05556</a>  </li>
-<li>AXA HK Express parametric — <a href="https://www.axapartners.com/en/page/axa-hk-express-flight-delay-parametric-protection">https://www.axapartners.com/en/page/axa-hk-express-flight-delay-parametric-protection</a>  </li>
-<li>Cover Genius Delay Valet — <a href="https://covergenius.com/solutions/delay-valet/">https://covergenius.com/solutions/delay-valet/</a>  </li>
-<li>Blink Flight Disruption — <a href="https://blinkparametric.com/blink-parametric-platform/blink-flight-disruption/">https://blinkparametric.com/blink-parametric-platform/blink-flight-disruption/</a>  </li>
-<li>Hopper / OAG case study — <a href="https://www.oag.com/hopper-case-study">https://www.oag.com/hopper-case-study</a>  </li>
+<li>BTS Airline On-Time Performance Database — https://transtats.bts.gov/DatabaseInfo.asp?DB_URL=&amp;QO_VQ=EFD  </li>
+<li>BTS Download (Reporting Carrier) — https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&amp;QO_fu146_anzr=b0-gvzr  </li>
+<li>BTS TranStats annual charts — https://www.transtats.bts.gov/homedrillchart.asp  </li>
+<li>BTS Marketing Carrier Annual — https://www.transtats.bts.gov/Marketing_Annual.aspx  </li>
+<li>BTS on-time gallery — https://www.bts.gov/browse-statistical-products-and-data/info-gallery/percent-time-flight-departures-and-arrivals  </li>
+<li>EUROCONTROL CODA Digest 2024 — https://www.eurocontrol.int/publication/all-causes-delays-air-transport-europe-annual-2024  </li>
+<li>EUROCONTROL Sep 2025 delay brief PDF — https://www.eurocontrol.int/sites/default/files/2025-10/eurocontrol-all-causes-delay-to-air-transport-september-2025.pdf  </li>
+<li>EUROCONTROL 2025 review PDF — https://www.eurocontrol.int/sites/default/files/2026-01/eurocontrol-european-aviation-overview-20260123-2025-review.pdf  </li>
+<li>FAA ASQP definitions — https://aspmhelp.faa.gov/index/ASQP__Definitions_of_Variables.html  </li>
+<li>FAA ASPM overview — https://aspmhelp.faa.gov/index/Aviation_System_Performance_Metrics_(ASPM).html  </li>
+<li>Cirium Sky subscriptions — https://developer.cirium.com/apis/cirium-sky-api/subscriptions  </li>
+<li>OAG Flight Status — https://www.oag.com/flight-status-data  </li>
+<li>OpenSky terms — https://opensky-network.org/about/terms-of-use  </li>
+<li>Wang et al. delay CCDF (arXiv) — https://ar5iv.labs.arxiv.org/html/1701.05556  </li>
+<li>AXA HK Express parametric — https://www.axapartners.com/en/page/axa-hk-express-flight-delay-parametric-protection  </li>
+<li>Cover Genius Delay Valet — https://covergenius.com/solutions/delay-valet/  </li>
+<li>Blink Flight Disruption — https://blinkparametric.com/blink-parametric-platform/blink-flight-disruption/  </li>
+<li>Hopper / OAG case study — https://www.oag.com/hopper-case-study  </li>
 <li>Late Gate empirical outputs — <code>/workspace/late-gate-docs/data/</code>, <code>/workspace/late-gate-docs/figures/</code></li>
 </ol>
-<hr>
-<h2 id="appendix-a-rails-constants">Appendix A — Rails constants</h2>
+<hr class="rule"/>
+<h2>Appendix A — Rails constants</h2>
 <p>See <code>rails-pricing-constants.md</code> and <code>rails-pricing-constants.json</code> for drop-in thresholds, premiums, payouts, inventory, λ, refusal codes, and exposure limits.</p>
-<h2 id="appendix-b-assumptions-labeled">Appendix B — Assumptions (labeled)</h2>
+<h2>Appendix B — Assumptions (labeled)</h2>
 <ul>
 <li><strong>A1:</strong> Settlement equals BTS-style gate delay (assumption until Cirium/OAG wired).  </li>
-<li><strong>A2:</strong> Sold-stub <span class="math">p</span> equals historical flight-level <span class="math">p̂</span> if CUTOFF/HOT enforced (optimistic without live telemetry).  </li>
+<li><strong>A2:</strong> Sold-stub \(p\) equals historical flight-level \(\hat{p}\) if CUTOFF/HOT enforced (optimistic without live telemetry).  </li>
 <li><strong>A3:</strong> Single-tier payout (not stacked 30+45+60).  </li>
 <li><strong>A4:</strong> Cancellations refund π (not a delay win).  </li>
 <li><strong>A5:</strong> Clean demo prior 8/5/3.5% is a <strong>scenario</strong>, not a national statistic.  </li>
 <li><strong>A6:</strong> Full-year 2024/2025 microdata not fully ingested — expand before production rate cards.</li>
 </ul>
-  </section>
-  <section id="exec" class="page-break">
-<h1 id="late-gate-exec-summary-mikail">Late Gate — Exec Summary (Mikail)</h1>
-<p><strong>Date:</strong> 12 Sep 2026 (ET)<br>
-<strong>Ask:</strong> Data-backed parametric stub pricing for Takeoff &amp; Arrival delay products.</p>
-<hr>
-<h2 id="locked-eng-baseline-demo-rails">Locked Eng baseline (demo / Rails)</h2>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Takeoff delay</th>
-<th>Arrival delay</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Premium π</strong></td>
-<td><strong>$14</strong></td>
-<td><strong>$9</strong></td>
-</tr>
-<tr>
-<td><strong>Payouts B</strong></td>
-<td><strong>$100 / $150 / $200</strong> at internal 30 / 45 / 60 min</td>
-<td>same</td>
-</tr>
-<tr>
-<td>Structure</td>
-<td>Fixed premium; traveler picks one buffer tier; payout scales</td>
-<td>same</td>
-</tr>
-<tr>
-<td>Inventory</td>
-<td>Limited stubs / flight / product (default 10; demo 5)</td>
-<td></td>
-</tr>
-<tr>
-<td>Counterparty</td>
-<td>House only (no user LP yet)</td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>τ stays <strong>internal</strong> — UI never shows “30/45/60 minutes” as underwriting jargon.</p>
-<hr>
-<h2 id="what-the-data-says">What the data says</h2>
-<p>From <strong>BTS</strong> flight-level On-Time Performance (Reporting Carrier), <strong>Jan + Jul 2024</strong> (~1.14M operated flights):</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>p(delay ≥ 30)</th>
-<th>≥ 45</th>
-<th>≥ 60</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Departure (Takeoff proxy)</strong></td>
-<td><strong>18.3%</strong></td>
-<td><strong>13.6%</strong></td>
-<td><strong>10.5%</strong></td>
-</tr>
-<tr>
-<td><strong>Arrival</strong></td>
-<td><strong>18.7%</strong></td>
-<td><strong>13.8%</strong></td>
-<td><strong>10.7%</strong></td>
-</tr>
-</tbody>
-</table>
-<p>US industry ≥15 min late remains ~<strong>20–21%</strong> (BTS 2023–2025). Europe is similar or worse on &gt;15 (EUROCONTROL 2024 arrival punctuality ~72% → ~28% &gt;15).</p>
-<p>Delays concentrate by <strong>airline, airport, time-of-day, day-of-week</strong> (e.g. Jul 2024 morning dep p≥30 ~8%; evening ~35%; HA ~7% vs AA ~29%).</p>
-<hr>
-<h2 id="critical-pricing-finding">Critical pricing finding</h2>
-<p><strong>At pool-average probabilities, Eng’s locked π/B loses money</strong> (house EV deeply negative; implied λ ≈ 0.4–0.8).</p>
-<table>
-<thead>
-<tr>
-<th>Product</th>
-<th>Example τ=30</th>
-<th>E[payout] at pool p</th>
-<th>π</th>
-<th>House EV</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Takeoff</td>
-<td>18.3% × $100</td>
-<td>$18.33</td>
-<td>$14</td>
-<td><strong>−$4.33</strong></td>
-</tr>
-<tr>
-<td>Arrival</td>
-<td>18.7% × $100</td>
-<td>$18.66</td>
-<td>$9</td>
-<td><strong>−$9.66</strong></td>
-</tr>
-</tbody>
-</table>
-<p><strong>We keep Eng numbers as the locked baseline</strong> for UI/demo/Rails constants, and make the book work via <strong>selective underwriting</strong>:</p>
-<ul>
-<li>Only list stubs when flight-level <span class="math">p̂</span> is below gates (Arrival is stricter than Takeoff).</li>
-<li>Target load <strong>λ ≈ 1.45</strong> on the <em>underwritten</em> book.</li>
-<li>Clean demo prior <span class="math">p̂</span> ≈ <strong>8% / 5% / 3.5%</strong> → Takeoff EV ≈ <strong>+$6 to +$7</strong>; Arrival EV ≈ <strong>+$1 to +$2</strong> per stub.</li>
-</ul>
-<p>If Eng later reopens prices for a <em>random-flight</em> book, fair π at λ=1.45 &amp; current B is roughly <strong>$27–$31</strong> per product — or cut B sharply. Prefer <strong>selection + locked π</strong> for the demo.</p>
-<hr>
-<h2 id="top-5-risk-controls">Top 5 risk controls</h2>
-<ol>
-<li><strong>UNDERWRITE_REJECT / p_max gates</strong> — don’t sell high-<span class="math">p̂</span> flights.  </li>
-<li><strong>CUTOFF</strong> — stop sales before STD (4–6h).  </li>
-<li><strong>HOT</strong> — freeze sales when delay/weather develops.  </li>
-<li><strong>Inventory + portfolio caps</strong> — FOMO stubs; airport/airline/day exposure limits; weather multiplier 0.35.  </li>
-<li><strong>DUPLICATE</strong> — one stub / user / flight / product.</li>
-</ol>
-<hr>
-<h2 id="settlement-mvp">Settlement (MVP)</h2>
-<ul>
-<li><strong>Takeoff</strong> = gate-out vs schedule; <strong>Arrival</strong> = gate-in vs schedule (matches BTS <code>DepDelay</code> / <code>ArrDelay</code>).  </li>
-<li>Observe with buffer; 72h dispute window.  </li>
-<li>Live settlement needs <strong>Cirium/OAG</strong> (paywalled); BTS is free but lagged (great for priors/backtest).</li>
-</ul>
-<hr>
-<h2 id="traveler-copy">Traveler copy</h2>
-<p>Avoid “insurance / gambling / odds.” Prefer stub, payout, delay cushion, limited inventory. Paper may use actuarial language; UI must not.</p>
-<hr>
-<h2 id="deliverables">Deliverables</h2>
-<table>
-<thead>
-<tr>
-<th>File</th>
-<th>Path</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Technical paper</td>
-<td><code>/workspace/late-gate-docs/technical-paper-flight-delay-pricing.md</code></td>
-</tr>
-<tr>
-<td>Research notes</td>
-<td><code>/workspace/late-gate-docs/research-notes.md</code></td>
-</tr>
-<tr>
-<td>Rails tables</td>
-<td><code>/workspace/late-gate-docs/rails-pricing-constants.md</code></td>
-</tr>
-<tr>
-<td>Rails JSON</td>
-<td><code>/workspace/late-gate-docs/rails-pricing-constants.json</code></td>
-</tr>
-<tr>
-<td>Data &amp; figures</td>
-<td><code>/workspace/late-gate-docs/data/</code>, <code>figures/</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Bottom line:</strong> Ship Eng’s <strong>$14 / $9</strong> and <strong>$100/$150/$200</strong>, but <strong>only on clean flights</strong>. That is how house EV stays &gt; 0 without abandoning the locked traveler-facing numbers.</p>
-  </section>
-  <p class="source-note">
-    Rendered from <code>technical-paper-flight-delay-pricing.md</code> and <code>exec-summary.md</code>.
-    Prefer print/academic HTML or PDF; not a product website.
-  </p>
+  </div>
+  <div class="footer-note">
+    Late Gate — Parametric flight-delay stubs · Eng / Product distribution
+  </div>
 </article>
 </body>
 </html>
