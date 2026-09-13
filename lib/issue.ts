@@ -11,14 +11,14 @@ import { DEMO_POT_GRANT_CENTS } from "@/lib/domain/pot";
 import { getFallbackPotStore, getStore } from "@/lib/store";
 import { writeOpened } from "@/lib/ledger";
 import { readWorldSession } from "@/lib/world";
-import { payPremium, STUB_TRAVELER_ADDRESS } from "@/lib/usdc";
+import { isUsdcLiveConfigured, payPremium, STUB_TRAVELER_ADDRESS } from "@/lib/usdc";
 import { isAddress, type Address } from "viem";
 
 /**
  * Buy rail: re-quote → World session → USDC premium (locked prize path) → Policy.
  * Memory pot debit is a labeled demo fallback — not Redis, not prize money.
  * PARKED: ledger dual-write + Hedera x402. Traveler never signs a Hedera tx.
- * // status: implemented against USDC stub + memory fallback. Live vault TODO.
+ * // status: implemented against USDC stub or live vault when env is set. Memory pot = fallback.
  */
 export async function issueTicket(
   input: TicketIssueRequest,
@@ -104,6 +104,19 @@ export async function issueTicket(
     flightKey: quote.flightKey,
     txHash: input.usdcTxHash,
   });
+
+  if (!usdc.ok && isUsdcLiveConfigured()) {
+    return {
+      ok: false,
+      status: "NOT_ISSUED",
+      refusal: "UNVERIFIED",
+      title: "The premium did not clear.",
+      reason: usdc.reason,
+      detail:
+        "Approve USDC to the vault on World Chain Sepolia (4801), or transfer USDC to the vault and send usdcTxHash.",
+      flightKey: quote.flightKey,
+    };
+  }
 
   // Labeled fallback — memory pot only. Do not debit leftover Redis USD as prize money.
   const fallbackPot = getFallbackPotStore();

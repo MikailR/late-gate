@@ -8,7 +8,9 @@
     "start": "next start -p 47210",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/domain/domain.test.ts lib/usdc/usdc.test.ts lib/world/world.test.ts",
+    "test": "tsx --test --test-concurrency=1 lib/domain/domain.test.ts lib/usdc/usdc.test.ts lib/usdc/vault.test.ts lib/world/world.test.ts",
+    "test:vault": "forge test",
+    "deploy:vault": "tsx scripts/deploy-vault.ts",
     "agent:snapshot": "tsx scripts/agent/buy-snapshot.ts"
   },
   "dependencies": {

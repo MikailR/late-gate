@@ -103,12 +103,14 @@ lib/domain/          quote, refuse, observe, pot, keys, events
 lib/store/           Store + memory + Upstash
 lib/x402/            machine till (stub if no Hedera keys)
 lib/world/           Sandbox IDKit verify + humanKey (orbLegacy default)
-lib/ledger/          LateGateLedger dual-write (stub if no Base key)
+lib/ledger/          LateGateLedger dual-write (PARKED — not prize-critical)
+lib/usdc/            World Chain Sepolia USDC till (stub or live vault)
 lib/oracle/          official snapshot sold via x402
 lib/flights/         Day-1 fixtures + lookup
 app/api/oracle/      paid snapshot
-scripts/agent/       buy-snapshot consumer
-contracts/           LateGateLedger.sol (Base Sepolia)
+scripts/agent/       buy-snapshot consumer (PARKED)
+scripts/deploy-vault.ts  LateGateVault → World Chain Sepolia
+contracts/           LateGateVault.sol (prize) + LateGateLedger.sol (PARKED)
 ```
 
 ## Open blockers

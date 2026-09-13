@@ -17,6 +17,11 @@
 /.next/
 /out/
 
+# foundry (src stays in contracts/; do not use lib/ for forge-std)
+/cache/
+/forge-out/
+/lib-sol/
+
 # production
 /build
 

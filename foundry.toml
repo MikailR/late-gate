@@ -1,0 +1,14 @@
+[profile.default]
+src = "contracts"
+test = "contracts/test"
+script = "script"
+out = "forge-out"
+libs = ["lib-sol"]
+solc = "0.8.24"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+ffi = false
+
+[rpc_endpoints]
+worldchain_sepolia = "${WORLDCHAIN_RPC}"
