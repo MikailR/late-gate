@@ -43,7 +43,7 @@ export default async function TicketPage({
             Tickets are written from a quoted flight. Look one up first.
           </p>
           <Link
-            href="/"
+            href="/quote"
             className={cn(
               buttonVariants({ size: "lg" }),
               "mt-6 h-12 w-full rounded-sm bg-navy text-[13px] tracking-[0.16em] text-paper uppercase hover:bg-navy/90",

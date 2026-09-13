@@ -70,7 +70,7 @@ export function RefusalDesk({ result }: { result: QuoteRefusal }) {
       </article>
 
       <Link
-        href="/"
+        href="/quote"
         className={cn(
           buttonVariants({ size: "lg" }),
           "h-12 w-full rounded-sm bg-navy text-[13px] tracking-[0.16em] text-paper uppercase hover:bg-navy/90",

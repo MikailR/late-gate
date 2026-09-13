@@ -1,1 +1,86 @@
-/* Day-1 global tokens. Pricing lock does not restyle traveler UI. */
+@import "tailwindcss";
+
+/* Brand lock: Paper, Ink, Stamp Red, Gate Blue. */
+@theme inline {
+  --color-paper: #f4efe6;
+  --color-paper-hot: #ebe3d4;
+  --color-ink: #121212;
+  --color-stamp: #c43c2c;
+  --color-navy: #1b4f8a;
+  --color-gate: #1b4f8a;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, "Times New Roman",
+    serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+}
+
+html,
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Proto desk classes already used by quote / refuse / ticket. Tokens only. */
+.paper-card {
+  background: color-mix(in srgb, var(--color-paper) 68%, white);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+}
+
+.ticket {
+  background: color-mix(in srgb, var(--color-paper) 52%, white);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 14%, transparent);
+}
+
+.ticket-perf {
+  height: 14px;
+  background:
+    radial-gradient(circle at 0 50%, var(--color-paper) 7px, transparent 7.5px),
+    radial-gradient(
+      circle at 100% 50%,
+      var(--color-paper) 7px,
+      transparent 7.5px
+    );
+  border-top: 1px dashed color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-ink) 18%, transparent);
+}
+
+.barcode {
+  height: 34px;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-ink) 0 2px,
+    transparent 2px 5px
+  );
+}
+
+.lg-ruled {
+  background-color: var(--color-paper);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 27px,
+    color-mix(in srgb, var(--color-ink) 5%, transparent) 27px,
+    color-mix(in srgb, var(--color-ink) 5%, transparent) 28px
+  );
+}
+
+.lg-stamp {
+  border: 3px solid var(--color-stamp);
+  color: var(--color-stamp);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-stamp) 35%, transparent);
+}
+
+.lg-perf {
+  background-image: radial-gradient(
+    circle,
+    var(--color-paper) 5px,
+    transparent 5.5px
+  );
+  background-size: 16px 16px;
+  background-position: -8px 50%;
+}

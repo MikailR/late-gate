@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { BoardingPass } from "@/components/boarding-pass";
+import { LookupDesk } from "@/components/lookup-desk";
 import { RefusalDesk } from "@/components/refusal-desk";
 import { SiteShell } from "@/components/site-shell";
 import { parseQuoteInput } from "@/lib/quote-request";
@@ -17,7 +17,11 @@ export default async function QuotePage({
   const input = parseQuoteInput(params);
 
   if (!input) {
-    redirect("/");
+    return (
+      <SiteShell>
+        <LookupDesk />
+      </SiteShell>
+    );
   }
 
   const quote = quoteFlight(input);
@@ -39,7 +43,7 @@ export default async function QuotePage({
       <BoardingPass quote={quote} />
       <p className="mt-6 text-center">
         <Link
-          href="/"
+          href="/quote"
           className="font-mono text-[11px] tracking-[0.12em] text-ink/40 uppercase underline-offset-4 hover:underline"
         >
           Look up another
