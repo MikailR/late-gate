@@ -1,7 +1,7 @@
 /**
  * World Chain + native USDC. Demo/testnet target is Sepolia (4801) only.
  * Mainnet (480) addresses are documented — do not send prize txs there.
- * // status: implemented (config). Live RPC calls are TODO in client.ts.
+ * // status: implemented (config). Live RPC is lib/usdc/live.ts when env is set.
  */
 
 import type { Address, Hex } from "viem";
@@ -89,5 +89,25 @@ export const ERC20_TRANSFER_ABI = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint8" }],
+  },
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "allowance",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+    ],
+    outputs: [{ name: "", type: "uint256" }],
   },
 ] as const;

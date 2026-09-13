@@ -33,6 +33,8 @@ export {
 } from "./amount";
 
 export {
+  isUsdcLiveConfigured,
+  isUsdcLiveEnv,
   isUsdcTillConfigured,
   lpDeposit,
   lpWithdraw,
@@ -41,16 +43,26 @@ export {
   usdcTill,
 } from "./client";
 
+export { LATE_GATE_VAULT_ABI } from "./vault-abi";
+export { assetsForShares, sharesForDeposit, sharesForWithdraw } from "./shares";
+export { isLiveTxHash, normalizePrivateKey } from "./live";
+
 export type {
   LpDepositInput,
   LpRole,
   LpWithdrawInput,
   PayPremiumInput,
   PayoutInput,
+  UsdcExecEnv,
+  UsdcExecOptions,
   UsdcFailure,
   UsdcOp,
   UsdcOpError,
   UsdcReceipt,
   UsdcResult,
   UsdcTill,
+  VaultSender,
+  VaultWriteCall,
 } from "./types";
+
+export type { VaultWriteFn } from "./vault-abi";

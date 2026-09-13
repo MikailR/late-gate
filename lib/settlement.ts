@@ -5,7 +5,7 @@ import { getFallbackPotStore, getStore } from "@/lib/store";
 import { writeObservation, writeSettled } from "@/lib/ledger";
 import type { Policy } from "@/lib/domain/policy";
 import { demoMode } from "@/lib/config/env";
-import { payout, STUB_TRAVELER_ADDRESS } from "@/lib/usdc";
+import { isUsdcLiveConfigured, payout, STUB_TRAVELER_ADDRESS } from "@/lib/usdc";
 import { isAddress, type Address } from "viem";
 
 export type TickResult = {
@@ -18,7 +18,7 @@ export type TickResult = {
  * Observe OPEN policies past scheduledArrival + grace, then PAID | EXPIRED.
  * PAID credits USDC (locked prize path, stub OK). Memory pot credit is fallback only.
  * PARKED: ledger dual-write + HCS. Machine till is not involved.
- * // status: implemented against USDC stub + memory fallback. Worker route is the caller.
+ * // status: implemented against USDC stub or live vault when env is set. Memory pot = fallback.
  */
 export async function settleOpenPolicies(now = new Date()): Promise<TickResult> {
   const store = getStore();
@@ -72,6 +72,10 @@ export async function settleOpenPolicies(now = new Date()): Promise<TickResult> 
         policyId: policy.policyId.toString(),
         ticketNumber: policy.ticketNumber,
       });
+      if (!credit.ok && isUsdcLiveConfigured()) {
+        skipped.push(policy.ticketNumber);
+        continue;
+      }
       if (credit.ok) {
         usdcTx = credit.txHash;
       }

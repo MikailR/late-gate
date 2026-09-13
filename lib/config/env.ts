@@ -171,6 +171,26 @@ export function isUsdcTillConfigured(): boolean {
   return Boolean(usdcTillEnv().housePrivateKey);
 }
 
+/**
+ * Live ERC-20 path. All three must be set — public RPC default does not count.
+ * Missing any one keeps stub receipts (`implemented: false`).
+ */
+export function isUsdcLiveEnv(input: {
+  rpcUrl?: string;
+  housePrivateKey?: string;
+  vaultAddress?: string;
+}): boolean {
+  return Boolean(input.rpcUrl && input.housePrivateKey && input.vaultAddress && isAddress(input.vaultAddress));
+}
+
+export function isUsdcLiveConfigured(): boolean {
+  return isUsdcLiveEnv({
+    rpcUrl: read("WORLDCHAIN_RPC"),
+    housePrivateKey: read("HOUSE_EVM_PRIVATE_KEY"),
+    vaultAddress: read("LP_VAULT_ADDRESS"),
+  });
+}
+
 /** PARKED — Base Sepolia LateGateLedger dual-write. Not prize-critical. */
 export type LedgerEnv = {
   rpcUrl: string;
