@@ -4,6 +4,10 @@ import { MINI_APP_HREF, PRICING_PAPER_HREF } from "./links";
 export function SiteHeader() {
   return (
     <header className="border-b border-ink/10">
+      <div className="flex h-1.5" aria-hidden>
+        <div className="w-2/3 bg-gate" />
+        <div className="w-1/3 bg-stamp" />
+      </div>
       <div className="mx-auto flex max-w-6xl items-end justify-between gap-6 px-5 py-5 sm:px-8">
         <Link href="/" className="group block">
           <p className="font-mono text-[10px] tracking-[0.28em] text-ink/45 uppercase">
