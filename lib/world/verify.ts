@@ -37,7 +37,7 @@ function unverified(flightKey: string, detail?: string): WorldVerifyFailure {
 export async function verifyWorldProof(input: WorldVerifyRequest): Promise<WorldVerifyResult> {
   const flightKey = input.flightKey.trim();
   if (!parseFlightKey(flightKey)) {
-    return unverified(flightKey, "Need a flight key like UA472|2026-09-12|EWR.");
+    return unverified(flightKey, "Need a flight key like UA837|2026-09-19|SFO.");
   }
 
   const env = worldEnv();

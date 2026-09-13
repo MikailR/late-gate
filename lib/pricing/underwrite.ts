@@ -35,7 +35,7 @@ export function cleanDemoPriorFor(minutesLate: MinutesLate): number {
  * Arrival clean_demo_prior (0.08 / 0.05 / 0.035) sits slightly above arrival
  * p_max (0.0621 / 0.0414 / 0.0310) but house EV is still positive — that
  * approved prior is what the FOMO demo lists. Cap is therefore
- * max(p_max, clean_demo_prior) so UA472 still quotes and pool-average rejects.
+ * max(p_max, clean_demo_prior) so UA837 still quotes and pool-average rejects.
  */
 export function underwriteCap(product: StubProduct, minutesLate: MinutesLate): number {
   return Math.max(pMaxFor(product, minutesLate), cleanDemoPriorFor(minutesLate));

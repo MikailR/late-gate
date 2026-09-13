@@ -27,26 +27,29 @@ type FixtureSeed = {
 
 /**
  * Home chips stay HOT / CUTOFF / clean. `pool` is off the desk — it exists so
- * UNDERWRITE_REJECT has a fixture. Times are offset from `now` so those paths
- * stay true throughout ETHOnline — keys therefore include the computed service
- * date (e.g. `UA472|2026-09-12|EWR` on Day 1).
+ * UNDERWRITE_REJECT has a fixture. `domestic` is a second clean quote (UA472
+ * EWR–SFO), also off the chips. Times are offset from `now` so those paths
+ * stay true throughout ETHGlobal Tokyo — keys therefore include the computed
+ * service date (e.g. `UA837|2026-09-19|SFO` at the frozen test clock).
  *
- * CUTOFF fixture departs in 2h. Demo cutoff is 6h (Day-1 was 8h) so it still
- * refuses; live default 4h also refuses.
+ * Clean hero is United UA 837 SFO→NRT (real-looking transpacific) on
+ * `clean_demo_prior` so it still quotes under p_max. CUTOFF fixture departs
+ * in 2h. Demo cutoff is 6h (Day-1 was 8h) so it still refuses; live default
+ * 4h also refuses.
  */
 const SEEDS: FixtureSeed[] = [
   {
     kind: "clean",
     carrier: "UA",
     airlineName: "United Airlines",
-    flightNumber: "472",
-    origin: "EWR",
-    originCity: "Newark",
-    destination: "SFO",
-    destinationCity: "San Francisco",
-    timeZone: "America/New_York",
+    flightNumber: "837",
+    origin: "SFO",
+    originCity: "San Francisco",
+    destination: "NRT",
+    destinationCity: "Tokyo",
+    timeZone: "America/Los_Angeles",
     departInHours: 7 * 24 + 8,
-    blockHours: 6.25,
+    blockHours: 11.25,
     estimatedDelayMinutes: 8,
     historicalDelayProb: CLEAN_DEMO_PRIOR_BY_MINUTES_LATE[60],
     historicalDelayProbByMinutesLate: CLEAN_DEMO_PRIOR_BY_MINUTES_LATE,
@@ -99,6 +102,23 @@ const SEEDS: FixtureSeed[] = [
     estimatedDelayMinutes: 4,
     historicalDelayProb: POOL_AVERAGE_PRIOR_BY_MINUTES_LATE[60],
     historicalDelayProbByMinutesLate: POOL_AVERAGE_PRIOR_BY_MINUTES_LATE,
+    status: "scheduled",
+  },
+  {
+    kind: "domestic",
+    carrier: "UA",
+    airlineName: "United Airlines",
+    flightNumber: "472",
+    origin: "EWR",
+    originCity: "Newark",
+    destination: "SFO",
+    destinationCity: "San Francisco",
+    timeZone: "America/New_York",
+    departInHours: 7 * 24 + 8,
+    blockHours: 6.25,
+    estimatedDelayMinutes: 8,
+    historicalDelayProb: CLEAN_DEMO_PRIOR_BY_MINUTES_LATE[60],
+    historicalDelayProbByMinutesLate: CLEAN_DEMO_PRIOR_BY_MINUTES_LATE,
     status: "scheduled",
   },
 ];

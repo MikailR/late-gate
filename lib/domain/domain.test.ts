@@ -19,8 +19,13 @@ import { REFUSAL_CODES, REFUSAL_COPY } from "./refusal";
 const frozen = new Date("2026-09-12T16:00:00.000Z");
 
 describe("quoteFlight Day-1 paths", () => {
-  it("quotes UA472 at $9 / arrival / 60", () => {
+  it("quotes UA837 SFO–NRT at $9 / arrival / 60", () => {
     const clean = getFixtureByKind("clean", frozen);
+    assert.equal(clean.snapshot.carrier, "UA");
+    assert.equal(clean.snapshot.flightNumber, "837");
+    assert.equal(clean.snapshot.origin, "SFO");
+    assert.equal(clean.snapshot.destination, "NRT");
+    assert.equal(clean.flightKey, "UA837|2026-09-19|SFO");
     const parsed = toFlightQuery({
       carrier: clean.snapshot.carrier,
       flightNumber: clean.snapshot.flightNumber,
@@ -31,15 +36,37 @@ describe("quoteFlight Day-1 paths", () => {
     const quote = quoteFlight(parsed, frozen);
     assert.equal(quote.ok, true);
     if (!quote.ok) return;
+    assert.equal(quote.flightKey, "UA837|2026-09-19|SFO");
     assert.equal(quote.premium, 9);
     assert.equal(quote.premiumCents, 900);
     assert.equal(quote.payoutCents, 20_000);
     assert.equal(quote.maxPayout, 200);
     assert.equal(quote.configure.minutesLate, 60);
     assert.equal(quote.product, "arrival");
+    const hoursToDepart =
+      (new Date(clean.snapshot.scheduledDeparture).getTime() - frozen.getTime()) /
+      3_600_000;
+    assert.ok(hoursToDepart > 6, "clean hero must sit outside demo CUTOFF (6h)");
   });
 
-  it("locks UA472 arrival $9 and takeoff $14; payout scales 100/150/200", () => {
+  it("still quotes domestic UA472 as a secondary clean fixture", () => {
+    const domestic = getFixtureByKind("domestic", frozen);
+    assert.equal(domestic.snapshot.carrier, "UA");
+    assert.equal(domestic.snapshot.flightNumber, "472");
+    assert.equal(domestic.snapshot.origin, "EWR");
+    const quote = quoteFlight({
+      carrier: domestic.snapshot.carrier,
+      flightNumber: domestic.snapshot.flightNumber,
+      serviceDate: domestic.snapshot.serviceDate,
+      origin: domestic.snapshot.origin,
+    }, frozen);
+    assert.equal(quote.ok, true);
+    if (!quote.ok) return;
+    assert.equal(quote.premium, 9);
+    assert.equal(quote.maxPayout, 200);
+  });
+
+  it("locks UA837 arrival $9 and takeoff $14; payout scales 100/150/200", () => {
     const clean = getFixtureByKind("clean", frozen);
     const base = {
       carrier: clean.snapshot.carrier,
@@ -153,7 +180,7 @@ describe("quoteFlight Day-1 paths", () => {
     assert.equal(quote.refusal, "FULL");
   });
 
-  it("refuses UNDERWRITE_REJECT on pool-average p, not on UA472 clean_demo_prior", () => {
+  it("refuses UNDERWRITE_REJECT on pool-average p, not on UA837 clean_demo_prior", () => {
     const pool = getFixtureByKind("pool", frozen);
     const poolQuote = quoteSnapshot(pool.snapshot, {
       carrier: pool.snapshot.carrier,
@@ -258,8 +285,8 @@ describe("observe", () => {
 
 describe("keys and status", () => {
   it("builds a stable humanKey and LG ticket number", () => {
-    const a = humanKeyFromNullifier(1n, "UA472|2026-09-12|EWR");
-    const b = humanKeyFromNullifier(1n, "UA472|2026-09-12|EWR");
+    const a = humanKeyFromNullifier(1n, "UA837|2026-09-19|SFO");
+    const b = humanKeyFromNullifier(1n, "UA837|2026-09-19|SFO");
     const c = humanKeyFromNullifier(1n, "B6148|2026-09-08|BOS");
     assert.equal(a, b);
     assert.notEqual(a, c);

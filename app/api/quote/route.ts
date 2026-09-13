@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         refusal: "NOT_FOUND",
         title: "That lookup is incomplete.",
         reason: "Need a two-letter carrier, a flight number, and a service date.",
-        detail: "Origin is optional. Example: UA 472 on 2026-09-12 out of EWR.",
+        detail: "Origin is optional. Example: UA 837 on 2026-09-19 out of SFO.",
         tauMinutes: 60,
         cutoffHours: cutoffHours(),
       },

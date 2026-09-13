@@ -5,10 +5,12 @@
  *
  * Live Blocky402: set AGENT_HEDERA_* and swap the stub header for wrapFetchWithPayment.
  */
+import { getFixtureByKind } from "../../lib/flights/fixtures";
 import { STUB_PAYMENT_HEADER } from "../../lib/x402/types";
 
 const base = (process.env.BASE_URL ?? "http://127.0.0.1:47210").replace(/\/$/, "");
-const flightKey = process.argv[2] ?? process.env.FLIGHT_KEY ?? "UA472|2026-09-12|EWR";
+const flightKey =
+  process.argv[2] ?? process.env.FLIGHT_KEY ?? getFixtureByKind("clean").flightKey;
 const url = `${base}/api/oracle/snapshot?flightKey=${encodeURIComponent(flightKey)}`;
 
 async function main() {

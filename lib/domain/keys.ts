@@ -2,7 +2,7 @@ import { concat, keccak256, pad, stringToBytes, toBytes, toHex } from "viem";
 import type { FlightSnapshot } from "@/lib/flights/types";
 import type { FlightKeyHash, Hex, HumanKey, PolicyId, SnapshotHash } from "./types";
 
-/** `UA472|2026-09-12|EWR` → indexed topic. // status: implemented */
+/** `UA837|2026-09-19|SFO` → indexed topic. // status: implemented */
 export function flightKeyHash(flightKey: string): FlightKeyHash {
   return keccak256(toBytes(flightKey));
 }

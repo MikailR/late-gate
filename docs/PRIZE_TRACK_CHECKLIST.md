@@ -69,7 +69,7 @@ No bridge. Dual-write. Studio cannot index Hedera.
 - [ ] Submit under **AI From Scratch** pool (Start Fresh)
 
 **Strong:**
-- [ ] Agent question demo: "what's open on UA472?" → structured answer matching UI stub
+- [ ] Agent question demo: "what's open on UA837?" → structured answer matching UI stub
 - [ ] SKILL.md runnable from Cursor/Claude
 - [ ] Pin `startBlock`; handle indexing lag UX ("Filing the receipt…")
 

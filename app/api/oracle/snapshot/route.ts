@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       {
         ok: false,
         error: "MISSING_FLIGHT_KEY",
-        detail: "GET /api/oracle/snapshot?flightKey=UA472|2026-09-12|EWR",
+        detail: "GET /api/oracle/snapshot?flightKey=UA837|2026-09-19|SFO",
       },
       { status: 400 },
     );

@@ -62,11 +62,12 @@ Configure in any UI-facing type: `{ product: "takeoff" \| "arrival", minutesLate
 ## Machine till (x402)
 
 ```
-curl -i "$BASE/api/oracle/snapshot?flightKey=UA472|2026-09-12|EWR"
+curl -i "$BASE/api/oracle/snapshot?flightKey=UA837|2026-09-19|SFO"
 # 402 + accepts (HBAR 0.001)
 
 npm run agent:snapshot
-# stub-paid 0.001 HBAR · UA472|… · HashScan URL
+# stub-paid 0.001 HBAR · UA837|… · HashScan URL
+# defaults to the live clean fixture key (`UA837|<serviceDate>|SFO`)
 ```
 
 With real Portal accounts, swap the stub header for `@x402/fetch` `wrapFetchWithPayment` (TODO in `lib/x402`). Testnet facilitator: `https://api.testnet.blocky402.com`. Native Hedera, no bridge.
@@ -81,15 +82,15 @@ unpaid GET ──402──► agent pays dust on Hedera
                    backend enqueues X402Receipt (dual-write to Base later)
 ```
 
-## Day-1 demo (unchanged)
+## Day-1 demo (ETHGlobal Tokyo)
 
-Times are offset from *now*, so HOT / CUTOFF / clean stay true. Home chips still show three fixtures only.
+Times are offset from *now*, so HOT / CUTOFF / clean stay true. Home chips still show three fixtures only. The clean hero is United **UA 837 SFO → NRT** (far enough that demo CUTOFF 6h does not fire).
 
 1. **HOT** — `B6 148 · BOS` — estimate already ~95 minutes late → **NOT ISSUED / HOT**
 2. **CUTOFF** — `AA 100 · JFK` — inside the 6-hour window (Day-1 was 8h) → **CUTOFF**
-3. **Clean** — `UA 472 · EWR` — arrival / 60 is **$9 / $200**, takeoff / 60 is **$14 / $200** → **OPEN** stub
+3. **Clean** — `UA 837 · SFO` — arrival / 60 is **$9 / $200**, takeoff / 60 is **$14 / $200** → **OPEN** stub
 
-Unknown flight → **NOT_FOUND**. Pool-average `WN 1818 · DAL` is off the chips → **UNDERWRITE_REJECT**.
+Unknown flight → **NOT_FOUND**. Pool-average `WN 1818 · DAL` is off the chips → **UNDERWRITE_REJECT**. Domestic `UA 472 · EWR` is a second clean fixture (not the home chip).
 
 Pricing lock + gates: [`docs/pricing/README.md`](docs/pricing/README.md).
 

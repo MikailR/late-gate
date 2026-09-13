@@ -10,8 +10,11 @@ export type RefusalCode =
 
 export type HomeDemoKind = "clean" | "hot" | "cutoff";
 
-/** Home chips stay clean / hot / cutoff. `pool` is the high-p UNDERWRITE_REJECT fixture. */
-export type DemoKind = HomeDemoKind | "pool";
+/**
+ * Home chips stay clean / hot / cutoff. `pool` is the high-p UNDERWRITE_REJECT
+ * fixture. `domestic` is a second clean quote (UA472 EWR–SFO), off the chips.
+ */
+export type DemoKind = HomeDemoKind | "pool" | "domestic";
 
 export type FlightQuery = {
   carrier: string;
