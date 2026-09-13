@@ -20,9 +20,12 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Late Gate",
+  title: {
+    default: "Late Gate",
+    template: "%s · Late Gate",
+  },
   description:
-    "If they miss the gate, you don't miss the money. A single-seat ticket that pays when the flight is late to the gate.",
+    "If they miss the gate, you don't miss the money. Parametric flight-delay stubs with a locked price and a fixed payout.",
 };
 
 export default function RootLayout({
@@ -35,7 +38,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col bg-paper text-ink">{children}</body>
     </html>
   );
 }

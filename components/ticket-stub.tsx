@@ -80,7 +80,7 @@ export function TicketStub({ quote }: { quote: QuoteSuccess }) {
       </article>
 
       <Link
-        href="/"
+        href="/quote"
         className={cn(
           buttonVariants({ variant: "outline", size: "lg" }),
           "h-12 w-full rounded-sm border-ink/20 bg-transparent text-[13px] tracking-[0.16em] text-ink uppercase",

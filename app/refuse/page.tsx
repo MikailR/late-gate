@@ -15,7 +15,7 @@ export default async function RefusePage({
   const input = parseQuoteInput(params);
 
   if (!input) {
-    redirect("/");
+    redirect("/quote");
   }
 
   const quote = quoteFlight(input);
