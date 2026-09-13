@@ -28,11 +28,13 @@ function unverified(flightKey: string, detail?: string): WorldVerifyFailure {
 }
 
 /**
- * Server-side Selfie / World ID verify, then one-human-per-flight.
- * Live: POST idkitResponse to developer.world.org/api/v4/verify/{rp_id}.
+ * Server-side World ID verify, then one-human-per-flight.
+ * IDKit-ready: POST idkitResponse to developer.world.org/api/v4/verify/{rp_id}
+ * when app_id + rp_id are set. That is Sandbox / orbLegacy unless TFH enables
+ * Selfie Check (Beta) on the app — see FEEDBACK.md. Do not treat a successful
+ * stub or orbLegacy session as a live selfie proof.
  * Stub: deterministic nullifier from stubNullifier or "stub:{flightKey}".
- * Fallback preset is orbLegacy until TFH enables Selfie Check — see FEEDBACK.md.
- * // status: stub implemented; live v4 verify TODO until app_id / rp_id land
+ * // status: IDKit-ready + stub; live selfie blocked on the TFH flag
  */
 export async function verifyWorldProof(input: WorldVerifyRequest): Promise<WorldVerifyResult> {
   const flightKey = input.flightKey.trim();
@@ -87,7 +89,7 @@ export async function verifyWorldProof(input: WorldVerifyRequest): Promise<World
   };
 }
 
-/** // status: TODO — confirm signal_hash helper against @worldcoin/idkit-core once the app_id is live. */
+/** Forwards IDKit JSON unchanged. Selfie proofs still need the TFH app flag. */
 async function verifyLive(
   rpId: string,
   idkitResponse: Record<string, unknown>,
