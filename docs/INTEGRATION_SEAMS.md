@@ -28,7 +28,8 @@ The leftover **memory USD pot** is a labeled **demo fallback**, not the locked p
 | `lib/store` memory | **implemented** | Default local store. Pot methods = labeled fallback, not prize path |
 | `lib/store` Upstash Redis | **implemented** | Policies / bindings when `UPSTASH_REDIS_REST_*` are set. Redis USD pot is leftover, not prize-critical |
 | `GET /api/quote` | **implemented** | Unchanged Day-1 shape + extra quote fields |
-| `POST /api/world/verify` | **implemented (Sandbox / stub)** | IDKit-ready server verify + `humanKey`. Live v4 when `app_id` + `rp_id` are set. No live selfie proofs without the TFH flag. |
+| `POST /api/world/rp-context` | **implemented** | Gated on `WORLD_RP_SIGNING_KEY` (+ `rp_id`). Signs IDKit `rp_context`. Never returns the key. Action locked to `late-gate-ticket`. |
+| `POST /api/world/verify` | **implemented (Sandbox / stub)** | IDKit-ready server verify + `humanKey`. Live v4 when `app_id` + `rp_id` are set. Body `{ flightKey, idkitResponse }` unchanged. No live selfie proofs without the TFH flag. |
 | `POST /api/tickets` | **implemented** | World session → USDC `payPremium` (live when env is set) → policy. Live pay failure → NOT ISSUED. Memory pot debit is fallback |
 | `GET /api/oracle/snapshot` | **PARKED stub** | Still returns **402** then paid receipt. Hedera / Blocky402 is not prize-critical |
 | `scripts/agent/buy-snapshot.ts` | **PARKED** | Hedera agent path. Not prize-critical |
@@ -101,15 +102,22 @@ Lookup: `premiumUsdForProduct` / `PREMIUM_USD_BY_PRODUCT` and `payoutUsdForMinut
 
 ## 3. WorldVerify / humanKey
 
-**Who:** Mini App / Proto 3 checkout → Sandbox IDKit → `POST /api/world/verify` → then USDC `payPremium` → `POST /api/tickets`.
+**Who:** Mini App / Proto 3 checkout → `POST /api/world/rp-context` → IDKit → `POST /api/world/verify` → then USDC `payPremium` → `POST /api/tickets`.
 
 One human per flight is the abuse gate. The chain pivot does not move this off the buy path.
 
 **Shippable path (no production Selfie Check flag):**
 
-1. Mini App runs **Sandbox IDKit**: `environment: "sandbox"`, preset **`orbLegacy`**, action `late-gate-ticket`.
-2. Forward the IDKit result **unchanged** to `POST /api/world/verify` as `idkitResponse`.
-3. Server verifies at `https://developer.world.org/api/v4/verify/{rp_id}` when `NEXT_PUBLIC_WORLD_APP_ID` + `NEXT_PUBLIC_WORLD_RP_ID` are set, then issues `humanKey` + a 5-minute HMAC `worldSession`.
+1. Mini App calls **`POST /api/world/rp-context`** (GET aliases the same handler; no body). Rails signs with server-only `WORLD_RP_SIGNING_KEY` and returns `{ ok: true, rp_context }` (`rp_id`, `nonce`, `created_at`, `expires_at`, `signature`). Action is locked to `worldEnv().action` / `late-gate-ticket` — do not send an action from the client. The Mini App never sees the signing key.
+2. Mini App opens IDKit (`IDKitRequestWidget`) with that `rp_context` unchanged. For **real World ID (Sandbox) testers**, set IDKit `environment` to **`"production"`**, preset **`orbLegacy`**, `allow_legacy_proofs: true`, action `late-gate-ticket`. Use `"staging"` only for the World ID simulator. **`WORLD_ENV=sandbox` is our rails flag.** Do **not** set IDKit's `environment` field to `"sandbox"`.
+3. Forward the IDKit result **unchanged** to `POST /api/world/verify` as `{ flightKey, idkitResponse }`. That verify contract is unchanged.
+4. Server verifies at `https://developer.world.org/api/v4/verify/{rp_id}` when `NEXT_PUBLIC_WORLD_APP_ID` + `NEXT_PUBLIC_WORLD_RP_ID` are set, then issues `humanKey` + a 5-minute HMAC `worldSession`.
+
+**`POST /api/world/rp-context`**
+
+- Success 200: `{ ok: true, rp_context: { rp_id, nonce, created_at, expires_at, signature } }`
+- Missing `WORLD_RP_SIGNING_KEY` or `rp_id` → 503 `{ ok: false, refusal: "UNVERIFIED", reason }` (honest refuse — no stub signature)
+- `signRequest` throw → 500 same shape
 
 **UI copy (when Proto 3 / Mini App exists — not this branch):** say this is **Sandbox**. Say production **Selfie Check (Beta)** is gated by Tools for Humanity (`developers@toolsforhumanity.com`). ETHOnline teams cannot self-enable that flag. Do **not** present a live selfie CTA as working.
 
@@ -298,7 +306,8 @@ Or the HTTP seams (no Day-1 traveler UI rebuild):
 | Call | Who | Result |
 |---|---|---|
 | `GET /api/quote` | Mini App | Day-1 quote or **NOT ISSUED** refusal |
-| `POST /api/world/verify` | Mini App (after Sandbox IDKit) | `worldSession` + `humanKey` (`orbLegacy` / stub). Not live Selfie Check. |
+| `POST /api/world/rp-context` | Mini App (before IDKit) | `{ rp_context }` for `IDKitRequestWidget`. Server-only signing key. |
+| `POST /api/world/verify` | Mini App (after IDKit) | `{ flightKey, idkitResponse }` unchanged. `worldSession` + `humanKey` (`orbLegacy` / stub). Not live Selfie Check. |
 | `USDC.approve(vault, units)` or `USDC.transfer(vault, units)` | Mini App | Premium allowance or recorded deposit on **4801** |
 | `POST /api/tickets` | Mini App | Policy **OPEN** + USDC receipt. Body: `flightKey`, `worldSession`, `travelerAddress`, optional `usdcTxHash` |
 | `POST /api/worker/tick` | house | Observe → **PAID** / **EXPIRED** + USDC `payout` |

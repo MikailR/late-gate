@@ -14,6 +14,7 @@
     "agent:snapshot": "tsx scripts/agent/buy-snapshot.ts"
   },
   "dependencies": {
+    "@worldcoin/idkit-core": "^4.2.4",
     "@base-ui/react": "^1.8.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.5",
