@@ -323,6 +323,6 @@ Do not send the traveler to Hedera or Base. Do not treat Redis `potBalanceCents`
 2. **Mikail — Circle faucet USDC** on World Chain Sepolia for the house signer + a traveler demo wallet. https://faucet.circle.com
 3. **Mikail — house signer** (`HOUSE_EVM_PRIVATE_KEY`) funded with Sepolia ETH (gas) + faucet USDC.
 4. **`LP_VAULT_ADDRESS`** — run `npm run deploy:vault` with (1)+(3), then paste the printed address. Until all three exist, receipts stay stub (`implemented: false`).
-5. **TFH email** — production Selfie Check (Beta) flag (`developers@toolsforhumanity.com`). ETHOnline cannot self-enable it. Shipped default: Sandbox + `orbLegacy` / stub. Sandbox tester installs are a separate gate.
+5. **TFH email** — production Selfie Check (Beta) flag (`developers@toolsforhumanity.com`). ETHOnline cannot self-enable it. Shipped default: Sandbox + `orbLegacy` / stub. Sandbox tester installs are a separate gate: as of 2026-09-13 the public TestFlight group is full and the portal invite is pending; deadline circumvention is labeled stub/`orbLegacy`, not a live Sandbox proof. See [`FEEDBACK.md`](../FEEDBACK.md).
 6. **Aviationstack** — live mode off until a key exists.
 7. **PARKED (do not delete):** Hedera Portal ×2, Blocky402 (`lib/x402`), Base Sepolia ledger (`lib/ledger`, `contracts/LateGateLedger.sol`) + Studio subgraph.
