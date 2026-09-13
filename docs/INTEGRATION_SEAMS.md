@@ -27,12 +27,12 @@ The leftover **memory USD pot** is a labeled **demo fallback**, not the locked p
 | `lib/store` memory | **implemented** | Default local store. Pot methods = labeled fallback, not prize path |
 | `lib/store` Upstash Redis | **implemented** | Policies / bindings when `UPSTASH_REDIS_REST_*` are set. Redis USD pot is leftover, not prize-critical |
 | `GET /api/quote` | **implemented** | Unchanged Day-1 shape + extra quote fields |
-| `POST /api/world/verify` | **stub** | First-class World Selfie Check seam. Deterministic nullifier without `app_id`. Live v4 verify TODO. |
+| `POST /api/world/verify` | **implemented (Sandbox / stub)** | IDKit-ready server verify + `humanKey`. Live v4 when `app_id` + `rp_id` are set. No live selfie proofs without the TFH flag. |
 | `POST /api/tickets` | **implemented** | World session → USDC `payPremium` stub → policy. Memory pot debit is fallback |
 | `GET /api/oracle/snapshot` | **PARKED stub** | Still returns **402** then paid receipt. Hedera / Blocky402 is not prize-critical |
 | `scripts/agent/buy-snapshot.ts` | **PARKED** | Hedera agent path. Not prize-critical |
 | `lib/x402` | **PARKED stub** | Facilitator `/supported` fetch is real; settle is stub. Do not treat as traveler payout |
-| `lib/world` | **stub** | **First-class.** HMAC session implemented. Selfie flag gated — `orbLegacy` fallback |
+| `lib/world` | **implemented** | HMAC session + `humanKey`. Default `WORLD_ENV=sandbox`, `WORLD_PRESET=orbLegacy`. `selfieCheckLegacy` needs the TFH flag. |
 | `lib/ledger` + `contracts/LateGateLedger.sol` | **PARKED stub** | ABI + in-memory writes. Base / The Graph dual-write is not prize-critical |
 | `POST /api/worker/tick` | **implemented** | Observe → PAID / EXPIRED. PAID calls USDC `payout` stub |
 | Subgraph / MCP | **PARKED** | After ledger deploy — not prize-critical |
@@ -100,19 +100,32 @@ Lookup: `premiumUsdForProduct` / `PREMIUM_USD_BY_PRODUCT` and `payoutUsdForMinut
 
 ## 3. WorldVerify / humanKey
 
-**Who:** Mini App / Proto 3 checkout → `POST /api/world/verify` → then USDC `payPremium` → `POST /api/tickets`.
+**Who:** Mini App / Proto 3 checkout → Sandbox IDKit → `POST /api/world/verify` → then USDC `payPremium` → `POST /api/tickets`.
 
-World Selfie Check **stays first-class**. One human per flight is still the abuse gate. The chain pivot does not move this off the buy path.
+One human per flight is the abuse gate. The chain pivot does not move this off the buy path.
+
+**Shippable path (no production Selfie Check flag):**
+
+1. Mini App runs **Sandbox IDKit**: `environment: "sandbox"`, preset **`orbLegacy`**, action `late-gate-ticket`.
+2. Forward the IDKit result **unchanged** to `POST /api/world/verify` as `idkitResponse`.
+3. Server verifies at `https://developer.world.org/api/v4/verify/{rp_id}` when `NEXT_PUBLIC_WORLD_APP_ID` + `NEXT_PUBLIC_WORLD_RP_ID` are set, then issues `humanKey` + a 5-minute HMAC `worldSession`.
+
+**UI copy (when Proto 3 / Mini App exists — not this branch):** say this is **Sandbox**. Say production **Selfie Check (Beta)** is gated by Tools for Humanity (`developers@toolsforhumanity.com`). ETHOnline teams cannot self-enable that flag. Do **not** present a live selfie CTA as working.
+
+**Fallback (local / empty World creds):**
+
+- No `app_id` / `rp_id` → deterministic **stub** nullifier (`stubNullifier` or `stub:{flightKey}`). Response includes `stub: true`.
+- Preset stays **`orbLegacy`**. `selfieCheckLegacy` is only valid after TFH enables the app flag — even in Sandbox, live selfie proofs will not work without it.
 
 **Request:** `{ flightKey, idkitResponse?, stubNullifier? }`
 
-**Response:** `{ ok, humanKey, worldSession, expiresAt }` (5-minute HMAC). Raw nullifier never goes to the client as a displayed field.
+**Response:** `{ ok, humanKey, worldSession, expiresAt, stub, preset }` (5-minute HMAC). Raw nullifier never goes to the client as a displayed field.
 
 `humanKey = keccak256(nullifier_be32 ‖ utf8(flightKey))` — one human per flight.
 
 **Errors:** 401 `UNVERIFIED`, 409 `DUPLICATE` (+ `existingPolicyId`).
 
-**TODO:** TFH Selfie Check flag + Sandbox testers. Until then preset is `orbLegacy`. See [`FEEDBACK.md`](../FEEDBACK.md).
+**Not claimed:** live production Selfie Check proofs. See [`FEEDBACK.md`](../FEEDBACK.md).
 
 ---
 
@@ -252,7 +265,7 @@ Or the HTTP seams (no Day-1 traveler UI rebuild):
 | Call | Who | Result |
 |---|---|---|
 | `GET /api/quote` | Mini App | Day-1 quote or **NOT ISSUED** refusal |
-| `POST /api/world/verify` | Mini App | `worldSession` + `humanKey` (Selfie / orbLegacy) |
+| `POST /api/world/verify` | Mini App (after Sandbox IDKit) | `worldSession` + `humanKey` (`orbLegacy` / stub). Not live Selfie Check. |
 | `payPremium` / wallet `transfer` of USDC | Mini App | Premium to vault on **4801** |
 | `POST /api/tickets` | Mini App | Policy **OPEN** + USDC stub receipt. Body: `flightKey`, `worldSession`, `travelerAddress`, optional `usdcTxHash` |
 | `POST /api/worker/tick` | house | Observe → **PAID** / **EXPIRED** + USDC `payout` stub |
@@ -268,6 +281,6 @@ Do not send the traveler to Hedera or Base. Do not treat Redis `potBalanceCents`
 2. **Mikail — Circle faucet USDC** on World Chain Sepolia for the house signer + a traveler demo wallet. https://faucet.circle.com
 3. **Mikail — house signer** (`HOUSE_EVM_PRIVATE_KEY`) funded with Sepolia ETH (gas) + faucet USDC.
 4. **`LP_VAULT_ADDRESS`** — empty until a pot/vault is deployed. Stubs work; live LP deposit refuses without it.
-5. **TFH email** — Selfie Check (Beta) + Sandbox tester access. Fallback: `orbLegacy`.
+5. **TFH email** — production Selfie Check (Beta) flag (`developers@toolsforhumanity.com`). ETHOnline cannot self-enable it. Shipped default: Sandbox + `orbLegacy` / stub. Sandbox tester installs are a separate gate.
 6. **Aviationstack** — live mode off until a key exists.
 7. **PARKED:** Hedera Portal ×2, Blocky402 live receipt, Base Sepolia ledger + Studio subgraph.

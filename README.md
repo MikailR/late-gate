@@ -102,7 +102,7 @@ A fourth fixture `DL2|<today>|ATL` exists for the worker settle path only.
 lib/domain/          quote, refuse, observe, pot, keys, events
 lib/store/           Store + memory + Upstash
 lib/x402/            machine till (stub if no Hedera keys)
-lib/world/           Selfie / orbLegacy verify + humanKey
+lib/world/           Sandbox IDKit verify + humanKey (orbLegacy default)
 lib/ledger/          LateGateLedger dual-write (stub if no Base key)
 lib/oracle/          official snapshot sold via x402
 lib/flights/         Day-1 fixtures + lookup
@@ -113,7 +113,7 @@ contracts/           LateGateLedger.sol (Base Sepolia)
 
 ## Open blockers
 
-- TFH email for Selfie Check (Beta) + Sandbox testers. Fallback: `orbLegacy` ([`FEEDBACK.md`](FEEDBACK.md)).
+- Production Selfie Check (Beta) is TFH-gated (`developers@toolsforhumanity.com`). Demo ships Sandbox + `orbLegacy` ([`FEEDBACK.md`](FEEDBACK.md)).
 - Hedera Portal accounts (house + agent) and testnet HBAR — not the EVM faucet.
 - Base Sepolia ETH, `LateGateLedger` deploy, Studio subgraph.
 - Upstash Redis for a hosted pot (memory store is fine locally).

@@ -2,7 +2,7 @@ import { verifyWorldProof } from "@/lib/world";
 
 export const dynamic = "force-dynamic";
 
-/** // status: stub-ok without World app_id. Live v4 verify TODO. */
+/** IDKit-ready. Stub without app_id. Live selfie still needs the TFH flag. */
 export async function POST(request: Request) {
   let body: unknown = null;
   try {

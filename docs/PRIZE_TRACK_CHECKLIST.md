@@ -17,7 +17,7 @@ Official pages:
 |---|---|---|
 | **Hedera** | AI & Agentic Payments | Live x402 machine till + consumer agent paid E2E |
 | **The Graph** | Best AI Tooling / AI Use Case (**From Scratch**) | Live Studio subgraph + MCP/SKILL NL over our events |
-| **World** | Selfie Check | One-human-per-flight abuse prevention in buy path |
+| **World** | Selfie Check | One-human-per-flight abuse prevention. Demo = Sandbox + `orbLegacy`; live selfie is TFH-gated. |
 
 **Do not submit under:** Graph Composable/Standardized (one custom subgraph alone DQ); Hedera Tokenization / Harness / Continuity; World AgentKit Continuity (unless we later extend AgentKit).
 
@@ -34,7 +34,7 @@ Traveler UX (Next.js travel utility)
    └─► Base Sepolia: LateGateLedger.sol events ──► Subgraph Studio (LIVE)
                                                       ├─► ticket UI reads status
                                                       └─► MCP + SKILL.md (agent NL)
- World Selfie Check ──► nullifier / one human per flight (server-side)
+ World Sandbox IDKit + server verify ──► nullifier / one human per flight
 ```
 
 No bridge. Dual-write. Studio cannot index Hedera.
@@ -80,16 +80,16 @@ No bridge. Dual-write. Studio cannot index Hedera.
 ## World — Selfie Check
 
 **Qualify (must):**
-- [ ] Selfie Check (or compatible) in a **meaningful** buy/abuse-prevention path
-- [ ] Framed as risk / eligibility / fairness / continuity / **abuse prevention**
-- [ ] Working app demo
-- [ ] **FEEDBACK.md** (docs, Dev Portal, Sandbox states/errors, what was hard)
-- [ ] Sandbox testing notes
+- [x] Compatible World ID credential flow in a **meaningful** buy/abuse-prevention path (`POST /api/world/verify` + `humanKey`)
+- [x] Framed as risk / eligibility / fairness / continuity / **abuse prevention**
+- [ ] Working Mini App demo (Sandbox IDKit → verify). No traveler UI on this branch.
+- [x] **FEEDBACK.md** (docs, Dev Portal, Sandbox states/errors, what was hard)
+- [x] Sandbox testing notes (honest: Sandbox + `orbLegacy`; live selfie blocked)
 
 **Ops:**
-- [ ] Email TFH for Selfie feature access (or document `orbLegacy` fallback)
+- [x] Document `orbLegacy` + Sandbox as the shippable path. Email TFH for Selfie Check (Beta) — teams cannot self-enable it.
 
-**Copy:** no insurance/gambling language in World-facing UI.
+**Copy:** no insurance/gambling language in World-facing UI. Do not claim live selfie proofs without the TFH flag.
 
 ---
 
@@ -104,4 +104,4 @@ No bridge. Dual-write. Studio cannot index Hedera.
 
 ## Honest bar (2026-09-07)
 
-Architecture qualifies. Day-1 is still UI-heavy — Eng must ship the three rails above. Qualification ≠ competitive depth: Graph needs real MCP NL; Hedera needs a real paid HashScan; World needs Selfie in the path + feedback doc.
+Architecture qualifies. Day-1 is still UI-heavy — Eng must ship the three rails above. Qualification ≠ competitive depth: Graph needs real MCP NL; Hedera needs a real paid HashScan; World ships Sandbox IDKit + server verify + `humanKey`. Production Selfie Check is blocked on the TFH app flag — see [`FEEDBACK.md`](../FEEDBACK.md).

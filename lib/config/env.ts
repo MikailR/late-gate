@@ -111,7 +111,11 @@ export type WorldEnv = {
   action: string;
   environment: "sandbox" | "staging";
   sessionSecret?: string;
-  /** selfieCheckLegacy when TFH enables the flag; orbLegacy until then. */
+  /**
+   * Shippable default is orbLegacy (Sandbox). selfieCheckLegacy is the
+   * Selfie Check (Beta) preset and needs the TFH app flag — ETHOnline
+   * teams cannot self-enable it.
+   */
   preset: "orbLegacy" | "selfieCheckLegacy";
 };
 
