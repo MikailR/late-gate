@@ -1,6 +1,8 @@
 /**
- * Machine till — HBAR / tinybar only. Never import Pot / USD cents here.
- * // status: types implemented. Live Blocky402 verify is TODO until house Hedera keys land.
+ * PARKED — Hedera machine till (HBAR / tinybar). Not prize-critical.
+ * Traveler premium + delay payout are USDC on World Chain Sepolia (`lib/usdc`).
+ * Never import Pot / USD cents here.
+ * // status: PARKED stub. Live Blocky402 verify remains TODO; do not treat as a prize path.
  */
 
 export type X402Resource = "snapshot" | "receipt";

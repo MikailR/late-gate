@@ -1,7 +1,8 @@
 /**
- * Human till — USD cents only.
- * Never import HBAR / tinybar types here. Machine-till math lives in lib/x402.
- * // status: implemented (pure debit/credit). Persistence is lib/store.
+ * Demo fallback pot — USD cents in memory (or leftover Redis).
+ * NOT the locked prize path. Prize money is USDC on World Chain Sepolia (`lib/usdc`).
+ * Never import HBAR / tinybar types here. Hedera x402 is PARKED.
+ * // status: implemented (pure debit/credit). Labeled fallback only.
  */
 
 export const POT_CURRENCY = "USD" as const;

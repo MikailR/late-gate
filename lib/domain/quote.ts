@@ -157,10 +157,8 @@ export function quoteSnapshot(
 
 /**
  * Day-1 entry: lookup fixture (or live wrapper) then quote.
- * Dual-write plan (do not mix tills):
- *   - lock this quote 10 minutes in lib/store (USD, human till)
- *   - later: PolicyOpened on Base Sepolia + optional HCS
- *   - never charge HBAR for a traveler ticket
+ * Prize path: USDC on World Chain Sepolia (`lib/usdc`). Memory pot is fallback.
+ * PARKED: Base ledger dual-write + Hedera x402. Never charge HBAR for a ticket.
  * // status: implemented (lookup + quote). Quote lock + FULL book + EXPOSURE_CAP are TODO at the route.
  */
 export function quoteFlight(input: QuoteInput, now = new Date()): DomainQuoteResponse {

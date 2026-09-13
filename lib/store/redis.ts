@@ -16,7 +16,8 @@ const PREFIX = "lg:";
 type RedisResult = { result: unknown };
 
 /**
- * Upstash REST client. USD pot keys only — never write tinybar into these keys.
+ * Upstash REST client. Policies / bindings. Leftover USD pot keys are NOT prize money.
+ * Prize till is lib/usdc (World Chain Sepolia). Never write tinybar into these keys.
  * // status: implemented against Upstash REST. Unused until UPSTASH_* env is set.
  */
 async function redis(

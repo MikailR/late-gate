@@ -8,14 +8,17 @@ import { flightKeyHash } from "@/lib/domain/keys";
 import { policyFromQuote, type TicketIssueRequest, type TicketIssueResult } from "@/lib/domain/policy";
 import { refuseUnverified } from "@/lib/domain/refusal";
 import { DEMO_POT_GRANT_CENTS } from "@/lib/domain/pot";
-import { getStore } from "@/lib/store";
+import { getFallbackPotStore, getStore } from "@/lib/store";
 import { writeOpened } from "@/lib/ledger";
 import { readWorldSession } from "@/lib/world";
+import { payPremium, STUB_TRAVELER_ADDRESS } from "@/lib/usdc";
+import { isAddress, type Address } from "viem";
 
 /**
- * Buy rail: re-quote → World session → pot debit (USD) → pending Policy → ledger stub.
- * Traveler never signs a chain tx. HBAR is not touched.
- * // status: implemented against store + stubs. Live ledger / World still env-gated.
+ * Buy rail: re-quote → World session → USDC premium (locked prize path) → Policy.
+ * Memory pot debit is a labeled demo fallback — not Redis, not prize money.
+ * PARKED: ledger dual-write + Hedera x402. Traveler never signs a Hedera tx.
+ * // status: implemented against USDC stub + memory fallback. Live vault TODO.
  */
 export async function issueTicket(
   input: TicketIssueRequest,
@@ -90,23 +93,37 @@ export async function issueTicket(
     };
   }
 
+  const travelerAddress: Address =
+    input.travelerAddress && isAddress(input.travelerAddress)
+      ? input.travelerAddress
+      : STUB_TRAVELER_ADDRESS;
+
+  const usdc = await payPremium({
+    from: travelerAddress,
+    amountCents: quote.premiumCents,
+    flightKey: quote.flightKey,
+    txHash: input.usdcTxHash,
+  });
+
+  // Labeled fallback — memory pot only. Do not debit leftover Redis USD as prize money.
+  const fallbackPot = getFallbackPotStore();
   const ownerKey = session.humanKey;
-  let pot = await store.getPot(ownerKey);
+  let pot = await fallbackPot.getPot(ownerKey);
   const grant = humanTillEnv().demoGrantCents || DEMO_POT_GRANT_CENTS;
   if (pot.balanceCents === 0) {
-    pot = await store.creditPot(ownerKey, grant, "demo-grant");
+    pot = await fallbackPot.creditPot(ownerKey, grant, "demo-grant-fallback");
   }
 
   const premiumCents = quote.premiumCents;
   try {
-    pot = await store.debitPot(ownerKey, premiumCents, `ticket:${quote.flightKey}`);
+    pot = await fallbackPot.debitPot(ownerKey, premiumCents, `ticket-fallback:${quote.flightKey}`);
   } catch {
     return {
       ok: false,
       status: "NOT_ISSUED",
       refusal: "UNVERIFIED",
       title: "The pot is short.",
-      reason: `This ticket is ${premiumCents} cents and the pot has ${pot.balanceCents}.`,
+      reason: `This ticket is ${premiumCents} cents and the fallback pot has ${pot.balanceCents}.`,
       detail: "The desk grants a demo pot on first check-in. Ask the house to top it up.",
       flightKey: quote.flightKey,
     };
@@ -119,7 +136,12 @@ export async function issueTicket(
     humanKey: session.humanKey,
     now,
     cutoffAt,
+    travelerAddress,
   });
+
+  if (usdc.ok) {
+    policy.usdcTx = usdc.txHash;
+  }
 
   await store.putPolicy(policy);
   await store.putHumanBinding({
@@ -152,5 +174,7 @@ export async function issueTicket(
     policy,
     ticketNumber: policy.ticketNumber,
     potBalanceCents: pot.balanceCents,
+    potSource: "memory-fallback",
+    usdc,
   };
 }

@@ -10,6 +10,8 @@ export { RedisStore, createRedisStore } from "./redis";
 
 /**
  * Memory by default. Upstash when UPSTASH_REDIS_REST_URL + TOKEN are set.
+ * Store holds policies / bindings. USD pot methods are leftover fallback only —
+ * prize money is `lib/usdc`, never this Redis pot.
  * // status: implemented
  */
 export function getStore(): Store {
@@ -17,5 +19,10 @@ export function getStore(): Store {
     const redis = createRedisStore();
     if (redis) return redis;
   }
+  return getMemoryStore();
+}
+
+/** Labeled demo fallback pot. Never the Redis leftover as prize money. */
+export function getFallbackPotStore(): Store {
   return getMemoryStore();
 }

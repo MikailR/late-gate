@@ -1,3 +1,4 @@
+/** PARKED — Hedera x402. Not prize-critical. Prize till is lib/usdc. */
 export {
   evaluateSnapshotPayment,
   facilitatorFeePayer,

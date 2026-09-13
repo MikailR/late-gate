@@ -20,9 +20,10 @@ function stubTx(kind: string): string {
 }
 
 /**
- * Dual-write client. House is the only writer. Traveler never signs.
- * Live: TODO viem walletClient(HOUSE_EVM_PRIVATE_KEY, baseSepolia) + nonce queue.
- * // status: stub implemented; live write TODO until BASE_SEPOLIA_RPC_URL + key + LEDGER_ADDRESS
+ * PARKED — Base Sepolia LateGateLedger dual-write. Not prize-critical.
+ * HOUSE_EVM_PRIVATE_KEY is reused by the World Chain USDC till (`lib/usdc`).
+ * Live: TODO viem walletClient on baseSepolia + nonce queue — do not block the prize path.
+ * // status: PARKED stub. Live write TODO until LEDGER_ADDRESS exists.
  */
 export async function writeLedger(event: LedgerEvent): Promise<LedgerWriteResult> {
   const live = isLedgerConfigured();

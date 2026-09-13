@@ -1,3 +1,4 @@
+/** PARKED — Base ledger dual-write. Not prize-critical. Prize till is lib/usdc. */
 export {
   LATE_GATE_LEDGER_ABI,
   isLedgerConfigured,
