@@ -32,7 +32,7 @@ This is **install access**, not the Selfie Check flag.
 - Official path now: Developer Portal → World ID Sandbox → iOS tab → submit Apple Account email → wait for a TestFlight invite. ETHOnline prize form: https://forms.gle/mqbaiwMvX5MzmKdY8. Rejected or revoked access: `sandbox.access@toolsforhumanity.org`.
 - Mikail created a new Sandbox-enabled Developer Portal account, submitted enrolment, and is waiting on the invite. For the ETHOnline deadline we assume that email will not arrive in time.
 
-**Deadline circumvention (product lock — not a live Sandbox proof):** Mini App shell via production World App + LateKid Mini App IDs. The verify demo uses honest `orbLegacy` / stub. Rails stay Sandbox-configured (`WORLD_ENV=sandbox`) so if the invite lands, `POST /api/world/rp-context` + `POST /api/world/verify { flightKey, idkitResponse }` still work. We do **not** treat this circumvention as a completed Sandbox phone proof.
+**Deadline circumvention (product lock — not a live Sandbox proof):** Mini App shell via production World App + the first portal Mini App IDs. The product name is Late Gate. The verify demo uses honest `orbLegacy` / stub. Rails stay Sandbox-configured (`WORLD_ENV=sandbox`) so if the invite lands, `POST /api/world/rp-context` + `POST /api/world/verify { flightKey, idkitResponse }` still work. We do **not** treat this circumvention as a completed Sandbox phone proof.
 
 ## Production Selfie Check — blocked on World
 
