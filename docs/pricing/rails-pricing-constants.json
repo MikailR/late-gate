@@ -1,10 +1,10 @@
 {
   "meta": {
     "product": "LateGate",
-    "version": "2026-09-12.eng-lock.v1",
-    "notes": "Eng locked baseline: fixed premium per product, tiered payouts by traveler-selected threshold. Threshold minutes (tau) are INTERNAL only — never show in traveler UI. House is sole counterparty. Sell only when flight-level p_hat is under underwriting gates or house EV will be negative at pool rates.",
+    "version": "eng-lock.v1",
+    "notes": "Eng locked baseline: fixed premium per product, tiered payouts by traveler-selected threshold. Threshold minutes (tau) are INTERNAL only \u2014 never show in traveler UI. House is sole counterparty. Sell only when flight-level p_hat is under underwriting gates or house EV will be negative at pool rates.",
     "currency": "USD",
-    "data_basis": "BTS Reporting Carrier OTP Jan+Jul 2024 empirical; selective underwriting required"
+    "data_basis": "BTS Reporting Carrier OTP winter+summer month empirical; selective underwriting required"
   },
   "products": {
     "takeoff_delay": {
@@ -31,7 +31,11 @@
       "45": "Medium buffer",
       "60": "Long buffer"
     },
-    "minutes": [30, 45, 60],
+    "minutes": [
+      30,
+      45,
+      60
+    ],
     "payouts_usd": {
       "30": 100,
       "45": 150,
@@ -47,7 +51,7 @@
   "load_and_edge": {
     "target_lambda": 1.45,
     "min_lambda_underwriting": 1.25,
-    "adverse_selection_buffer": 0.20,
+    "adverse_selection_buffer": 0.2,
     "formula": "pi = lambda * E[payout] = lambda * p_hat(delay >= tau) * B(tau)",
     "house_ev_per_stub": "pi - p_hat * B",
     "note": "Locked pi is NOT equal to lambda*E[payout] at US pool-average p; lambda is enforced via underwriting gates on p_hat."
@@ -56,14 +60,38 @@
     "description": "Refuse listing / HOT if flight-level p_hat exceeds these caps. Caps derived from locked pi, B, and target lambda.",
     "by_product_and_tau": {
       "TAKEOFF": {
-        "30": { "p_max_lambda_1_45": 0.0966, "p_max_lambda_1_25": 0.1120, "p_breakeven_lambda_1": 0.1400 },
-        "45": { "p_max_lambda_1_45": 0.0644, "p_max_lambda_1_25": 0.0747, "p_breakeven_lambda_1": 0.0933 },
-        "60": { "p_max_lambda_1_45": 0.0483, "p_max_lambda_1_25": 0.0560, "p_breakeven_lambda_1": 0.0700 }
+        "30": {
+          "p_max_lambda_1_45": 0.0966,
+          "p_max_lambda_1_25": 0.112,
+          "p_breakeven_lambda_1": 0.14
+        },
+        "45": {
+          "p_max_lambda_1_45": 0.0644,
+          "p_max_lambda_1_25": 0.0747,
+          "p_breakeven_lambda_1": 0.0933
+        },
+        "60": {
+          "p_max_lambda_1_45": 0.0483,
+          "p_max_lambda_1_25": 0.056,
+          "p_breakeven_lambda_1": 0.07
+        }
       },
       "ARRIVAL": {
-        "30": { "p_max_lambda_1_45": 0.0621, "p_max_lambda_1_25": 0.0720, "p_breakeven_lambda_1": 0.0900 },
-        "45": { "p_max_lambda_1_45": 0.0414, "p_max_lambda_1_25": 0.0480, "p_breakeven_lambda_1": 0.0600 },
-        "60": { "p_max_lambda_1_45": 0.0310, "p_max_lambda_1_25": 0.0360, "p_breakeven_lambda_1": 0.0450 }
+        "30": {
+          "p_max_lambda_1_45": 0.0621,
+          "p_max_lambda_1_25": 0.072,
+          "p_breakeven_lambda_1": 0.09
+        },
+        "45": {
+          "p_max_lambda_1_45": 0.0414,
+          "p_max_lambda_1_25": 0.048,
+          "p_breakeven_lambda_1": 0.06
+        },
+        "60": {
+          "p_max_lambda_1_45": 0.031,
+          "p_max_lambda_1_25": 0.036,
+          "p_breakeven_lambda_1": 0.045
+        }
       }
     },
     "clean_demo_prior": {
@@ -71,14 +99,30 @@
       "p45": 0.05,
       "p60": 0.035,
       "expected_house_ev": {
-        "TAKEOFF": { "30": 6.0, "45": 6.5, "60": 7.0 },
-        "ARRIVAL": { "30": 1.0, "45": 1.5, "60": 2.0 }
+        "TAKEOFF": {
+          "30": 6.0,
+          "45": 6.5,
+          "60": 7.0
+        },
+        "ARRIVAL": {
+          "30": 1.0,
+          "45": 1.5,
+          "60": 2.0
+        }
       }
     },
     "pool_average_prior_bts_2024_jan_jul": {
-      "TAKEOFF": { "30": 0.1833, "45": 0.1361, "60": 0.1050 },
-      "ARRIVAL": { "30": 0.1866, "45": 0.1383, "60": 0.1069 },
-      "warning": "Using pool priors with locked pi yields negative house EV — do not price random flights."
+      "TAKEOFF": {
+        "30": 0.1833,
+        "45": 0.1361,
+        "60": 0.105
+      },
+      "ARRIVAL": {
+        "30": 0.1866,
+        "45": 0.1383,
+        "60": 0.1069
+      },
+      "warning": "Using pool priors with locked pi yields negative house EV \u2014 do not price random flights."
     }
   },
   "inventory": {
@@ -88,7 +132,7 @@
     "stubs_per_flight_per_product_demo": 5,
     "fomo_copy": "Limited stubs on this flight",
     "max_payout_exposure_per_flight_product_usd": 2000,
-    "note": "max exposure ≈ inventory_cap * max(B) = inventory * 200; default 10 => $2000"
+    "note": "max exposure \u2248 inventory_cap * max(B) = inventory * 200; default 10 => $2000"
   },
   "portfolio_exposure_limits": {
     "max_net_payout_exposure_per_airport_day_usd": 25000,
@@ -134,18 +178,25 @@
     },
     "CANCELLED": {
       "code": "CANCELLED",
-      "meaning": "Flight cancelled — stub rules: refund premium (recommended MVP) or separate cancel product.",
+      "meaning": "Flight cancelled \u2014 stub rules: refund premium (recommended MVP) or separate cancel product.",
       "mvp_settlement": "refund_premium"
     },
     "DIVERTED": {
       "code": "DIVERTED",
-      "meaning": "Diversion — Arrival product: treat as trigger at max B or manual review; Takeoff may still settle on gate-out delay.",
+      "meaning": "Diversion \u2014 Arrival product: treat as trigger at max B or manual review; Takeoff may still settle on gate-out delay.",
       "mvp_settlement": "arrival_pay_max_B_or_review"
     }
   },
   "settlement": {
-    "primary_sources_mvp": ["BTS_ASQP_proxy_delayed", "partner_flight_status_api"],
-    "production_preferred": ["Cirium", "OAG", "airline_direct"],
+    "primary_sources_mvp": [
+      "BTS_ASQP_proxy_delayed",
+      "partner_flight_status_api"
+    ],
+    "production_preferred": [
+      "Cirium",
+      "OAG",
+      "airline_direct"
+    ],
     "takeoff_observe_after": "actual_gate_out_or_std_plus_tau_plus_buffer",
     "arrival_observe_after": "actual_gate_in_or_sta_plus_tau_plus_buffer",
     "observation_buffer_minutes": 30,
@@ -154,13 +205,39 @@
     "hold_for_review_if": "source_conflict OR diversion OR gate_return"
   },
   "traveler_safe_wording": {
-    "avoid": ["insurance", "gamble", "bet", "odds", "policy", "claim", "premium (in UI)", "actuarial"],
-    "prefer": ["stub", "payout", "delay cushion", "flight credit-style protection", "locked price", "limited stubs"],
-    "never_show_in_ui": ["tau", "threshold minutes as underwriting jargon", "lambda", "house edge", "p_hat"]
+    "avoid": [
+      "insurance",
+      "gamble",
+      "bet",
+      "odds",
+      "policy",
+      "claim",
+      "premium (in UI)",
+      "actuarial"
+    ],
+    "prefer": [
+      "stub",
+      "payout",
+      "delay cushion",
+      "flight credit-style protection",
+      "locked price",
+      "limited stubs"
+    ],
+    "never_show_in_ui": [
+      "tau",
+      "threshold minutes as underwriting jargon",
+      "lambda",
+      "house edge",
+      "p_hat"
+    ]
   },
   "future_depositor_pool": {
     "enabled": false,
     "concept": "Depositors post capital; house edge (lambda - 1) can be shared after reserve; depositors inherit residual after traveler payouts and ops fee.",
-    "suggested_split_of_edge": { "house_ops_fee": 0.40, "depositor_yield": 0.50, "reserve": 0.10 }
+    "suggested_split_of_edge": {
+      "house_ops_fee": 0.4,
+      "depositor_yield": 0.5,
+      "reserve": 0.1
+    }
   }
 }
