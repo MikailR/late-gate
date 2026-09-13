@@ -1,10 +1,12 @@
 import { decideSettlement, isPastGrace } from "@/lib/domain/observe";
 import { snapshotHash } from "@/lib/domain/keys";
 import { officialSnapshot } from "@/lib/oracle";
-import { getStore } from "@/lib/store";
+import { getFallbackPotStore, getStore } from "@/lib/store";
 import { writeObservation, writeSettled } from "@/lib/ledger";
 import type { Policy } from "@/lib/domain/policy";
 import { demoMode } from "@/lib/config/env";
+import { payout, STUB_TRAVELER_ADDRESS } from "@/lib/usdc";
+import { isAddress, type Address } from "viem";
 
 export type TickResult = {
   scanned: number;
@@ -14,11 +16,13 @@ export type TickResult = {
 
 /**
  * Observe OPEN policies past scheduledArrival + grace, then PAID | EXPIRED.
- * PAID credits the USD pot. Machine till is not involved.
- * // status: implemented against store + ledger stub. Worker route is the caller.
+ * PAID credits USDC (locked prize path, stub OK). Memory pot credit is fallback only.
+ * PARKED: ledger dual-write + HCS. Machine till is not involved.
+ * // status: implemented against USDC stub + memory fallback. Worker route is the caller.
  */
 export async function settleOpenPolicies(now = new Date()): Promise<TickResult> {
   const store = getStore();
+  const fallbackPot = getFallbackPotStore();
   const open = await store.listOpenPolicies();
   const settled: Policy[] = [];
   const skipped: string[] = [];
@@ -55,8 +59,28 @@ export async function settleOpenPolicies(now = new Date()): Promise<TickResult> 
       observedAt: Math.floor(now.getTime() / 1000),
     });
 
+    const traveler: Address =
+      policy.travelerAddress && isAddress(policy.travelerAddress)
+        ? policy.travelerAddress
+        : STUB_TRAVELER_ADDRESS;
+
+    let usdcTx = policy.usdcTx;
     if (decision.outcome === "PAID" && decision.payoutCents > 0) {
-      await store.creditPot(policy.humanKey, decision.payoutCents, `settle:${policy.ticketNumber}`);
+      const credit = await payout({
+        to: traveler,
+        amountCents: decision.payoutCents,
+        policyId: policy.policyId.toString(),
+        ticketNumber: policy.ticketNumber,
+      });
+      if (credit.ok) {
+        usdcTx = credit.txHash;
+      }
+      // Labeled fallback — do not credit leftover Redis USD as prize money.
+      await fallbackPot.creditPot(
+        policy.humanKey,
+        decision.payoutCents,
+        `settle-fallback:${policy.ticketNumber}`,
+      );
     }
 
     const write = await writeSettled({
@@ -75,6 +99,7 @@ export async function settleOpenPolicies(now = new Date()): Promise<TickResult> 
       observedDelayMinutes: decision.observation.observedDelayMinutes,
       settledAt: now.toISOString(),
       ledgerTx: write.txHash,
+      usdcTx,
     };
     await store.putPolicy(next);
     settled.push(next);

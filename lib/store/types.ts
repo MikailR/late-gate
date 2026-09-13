@@ -26,7 +26,9 @@ export type PendingX402Receipt = X402ReceiptEvent & {
 };
 
 /**
- * Off-chain house ledger. USD pot only — never store tinybar / HBAR here.
+ * Off-chain house ledger (policies, bindings, leftover pot).
+ * Redis / memory USD pot is a labeled demo fallback — not the USDC prize path.
+ * Never store tinybar / HBAR here. Hedera x402 enqueue is PARKED.
  * // status: interface implemented. memory.ts is complete. redis.ts talks to Upstash when env is set.
  */
 export interface Store {

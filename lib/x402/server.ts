@@ -83,9 +83,9 @@ function header(request: Request, name: string): string | undefined {
 }
 
 /**
- * Real path: TODO verify PAYMENT-SIGNATURE with Blocky402 / @x402/next `withX402`.
+ * PARKED — not prize-critical. Real path still TODO (Blocky402 / @x402/next `withX402`).
  * Stub path: `X-Late-Gate-Stub-Pay: 1` (or any PAYMENT-SIGNATURE) when keys are missing.
- * // status: stub implemented; live verify TODO
+ * // status: PARKED stub; live verify TODO. Do not use as traveler payout.
  */
 export async function evaluateSnapshotPayment(
   request: Request,

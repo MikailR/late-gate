@@ -15,6 +15,8 @@ export async function POST(request: Request) {
   const row = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
   const flightKey = typeof row.flightKey === "string" ? row.flightKey : "";
   const worldSession = typeof row.worldSession === "string" ? row.worldSession : "";
+  const travelerAddress = typeof row.travelerAddress === "string" ? row.travelerAddress : undefined;
+  const usdcTxHash = typeof row.usdcTxHash === "string" ? row.usdcTxHash : undefined;
   const minutesLate = row.minutesLate;
   const product = row.product;
 
@@ -28,6 +30,10 @@ export async function POST(request: Request) {
   const result = await issueTicket({
     flightKey,
     worldSession,
+    travelerAddress: travelerAddress?.startsWith("0x")
+      ? (travelerAddress as `0x${string}`)
+      : undefined,
+    usdcTxHash: usdcTxHash?.startsWith("0x") ? (usdcTxHash as `0x${string}`) : undefined,
     configure:
       isMinutesLate(minutesLate) && isStubProduct(product)
         ? { minutesLate, product }

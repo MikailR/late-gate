@@ -1,4 +1,5 @@
 import type { QuoteSuccess } from "@/lib/flights/types";
+import type { UsdcResult } from "@/lib/usdc";
 import { ticketNumberFromPolicyId } from "./keys";
 import type { Configure, Hex, Outcome, PolicyId, PolicyStatus, StubProduct, TicketStatus } from "./types";
 
@@ -20,7 +21,12 @@ export type Policy = {
   snapshotHash?: Hex;
   observedDelayMinutes?: number;
   ledgerTx?: string;
+  /** PARKED Hedera receipt id. Not prize-critical. */
   hederaTxId?: string;
+  /** World Chain Sepolia USDC transfer (stub hash until live). */
+  usdcTx?: string;
+  /** Traveler / Mini App wallet that paid USDC premium. */
+  travelerAddress?: Hex;
   openedAt: string;
   settledAt?: string;
 };
@@ -29,13 +35,20 @@ export type TicketIssueRequest = {
   flightKey: string;
   worldSession: string;
   configure?: Configure;
+  /** World Chain address the Mini App pays USDC from. */
+  travelerAddress?: Hex;
+  /** Optional already-broadcast premium tx. */
+  usdcTxHash?: Hex;
 };
 
 export type TicketIssueSuccess = {
   ok: true;
   policy: Policy;
   ticketNumber: string;
+  /** Labeled memory-pot fallback. Not the locked USDC prize path. */
   potBalanceCents: number;
+  potSource: "memory-fallback";
+  usdc: UsdcResult;
 };
 
 export type TicketIssueRefusal = {
@@ -66,6 +79,7 @@ export function policyFromQuote(
     humanKey: Hex;
     now?: Date;
     cutoffAt: string;
+    travelerAddress?: Hex;
   },
 ): Policy {
   const configure = quote.configure ?? {
@@ -90,6 +104,7 @@ export function policyFromQuote(
     scheduledArrival: quote.flight.scheduledArrival,
     cutoffAt: args.cutoffAt,
     status: "OPEN",
+    travelerAddress: args.travelerAddress,
     openedAt: (args.now ?? new Date()).toISOString(),
   };
 }

@@ -8,7 +8,7 @@
     "start": "next start -p 47210",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/domain/domain.test.ts",
+    "test": "tsx --test lib/domain/domain.test.ts lib/usdc/usdc.test.ts",
     "agent:snapshot": "tsx scripts/agent/buy-snapshot.ts"
   },
   "dependencies": {

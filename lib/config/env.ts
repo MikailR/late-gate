@@ -1,12 +1,22 @@
 /**
- * Env grouping. Machine till (HBAR) and human till (USD pot) stay separate.
- * Never reuse a Hedera key as a pot credential or the reverse.
+ * Env grouping.
+ * Prize till = USDC on World Chain Sepolia (lib/usdc).
+ * Memory USD pot = labeled demo fallback, not the locked prize path.
+ * Redis USD pot = leftover, not prize-critical.
+ * Hedera x402 + Base ledger = PARKED / not prize-critical.
  */
 
 import {
   DEFAULT_MAX_OPEN_PER_FLIGHT,
   DEMO_MAX_OPEN_PER_FLIGHT,
 } from "@/lib/pricing/constants";
+import {
+  USDC_SEPOLIA_ADDRESS,
+  WORLDCHAIN_SEPOLIA_CHAIN_ID,
+  WORLDCHAIN_SEPOLIA_EXPLORER,
+  WORLDCHAIN_SEPOLIA_PUBLIC_RPC,
+} from "@/lib/usdc/chain";
+import { isAddress, type Address } from "viem";
 
 export type FlightDataMode = "demo" | "live";
 
@@ -30,7 +40,10 @@ export function aviationstackKey(): string | undefined {
   return read("AVIATIONSTACK_KEY");
 }
 
-/** Human till — USD pot in Redis / Upstash. Not HBAR. */
+/**
+ * Leftover store / inventory env. Redis pot is NOT the prize money path.
+ * Demo grant still seeds the memory-pot fallback.
+ */
 export type HumanTillEnv = {
   upstashUrl?: string;
   upstashToken?: string;
@@ -56,7 +69,10 @@ export function isHumanTillStoreConfigured(): boolean {
   return Boolean(env.upstashUrl && env.upstashToken);
 }
 
-/** Machine till — HBAR via Blocky402. Not USD. */
+/**
+ * PARKED — Hedera x402 / Blocky402 machine till. Not prize-critical.
+ * Keep vars so the stub still boots. Do not treat as the traveler payout path.
+ */
 export type MachineTillEnv = {
   blocky402Url: string;
   houseAccountId?: string;
@@ -117,6 +133,41 @@ export function isWorldConfigured(): boolean {
   return Boolean(env.appId && env.rpId);
 }
 
+/**
+ * Prize till — World Chain Sepolia USDC (6 decimals).
+ * HOUSE_EVM_PRIVATE_KEY is reused from the parked Base ledger section.
+ */
+export type UsdcTillEnv = {
+  rpcUrl: string;
+  chainId: typeof WORLDCHAIN_SEPOLIA_CHAIN_ID;
+  usdcAddress: Address;
+  housePrivateKey?: string;
+  vaultAddress?: Address;
+  explorerUrl: string;
+};
+
+export function usdcTillEnv(): UsdcTillEnv {
+  const rawAddress = read("USDC_ADDRESS") ?? USDC_SEPOLIA_ADDRESS;
+  const rawVault = read("LP_VAULT_ADDRESS");
+  const rawChain = Number(read("WORLDCHAIN_CHAIN_ID") ?? String(WORLDCHAIN_SEPOLIA_CHAIN_ID));
+  // Demo/testnet is pinned to 4801 even if someone sets 480. Mainnet is docs-only.
+  void rawChain;
+  return {
+    rpcUrl: read("WORLDCHAIN_RPC") ?? WORLDCHAIN_SEPOLIA_PUBLIC_RPC,
+    chainId: WORLDCHAIN_SEPOLIA_CHAIN_ID,
+    usdcAddress: isAddress(rawAddress) ? rawAddress : USDC_SEPOLIA_ADDRESS,
+    housePrivateKey: read("HOUSE_EVM_PRIVATE_KEY"),
+    vaultAddress: rawVault && isAddress(rawVault) ? rawVault : undefined,
+    explorerUrl: WORLDCHAIN_SEPOLIA_EXPLORER,
+  };
+}
+
+/** House signer present. Vault may still be empty (stub deposits refuse until set). */
+export function isUsdcTillConfigured(): boolean {
+  return Boolean(usdcTillEnv().housePrivateKey);
+}
+
+/** PARKED — Base Sepolia LateGateLedger dual-write. Not prize-critical. */
 export type LedgerEnv = {
   rpcUrl: string;
   housePrivateKey?: string;

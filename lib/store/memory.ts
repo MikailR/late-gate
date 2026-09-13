@@ -14,7 +14,10 @@ const globalStore = globalThis as unknown as {
   __lateGateMemory?: MemoryStore;
 };
 
-/** In-process store for local dev. Survives HMR via globalThis. // status: implemented */
+/** In-process store for local dev. Survives HMR via globalThis.
+ * Pot methods are the labeled demo fallback, not the USDC prize path.
+ * // status: implemented
+ */
 export class MemoryStore implements Store {
   private quotes = new Map<string, QuoteLock>();
   private pots = new Map<string, Pot>();
