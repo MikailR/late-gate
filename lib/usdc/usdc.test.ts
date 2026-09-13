@@ -53,7 +53,7 @@ describe("USDC stub pay / payout shape", () => {
     const paid = await payPremium({
       from: TRAVELER,
       amountCents: 900,
-      flightKey: "UA472|2026-09-12|EWR",
+      flightKey: "UA837|2026-09-19|SFO",
       policyId: "1",
     });
 
@@ -73,7 +73,7 @@ describe("USDC stub pay / payout shape", () => {
     assert.match(paid.txHash, /^0x/);
     assert.match(paid.explorerUrl, /\/tx\/0x/);
     assert.match(paid.todo, /TODO\(usdc\)/);
-    assert.equal(paid.flightKey, "UA472|2026-09-12|EWR");
+    assert.equal(paid.flightKey, "UA837|2026-09-19|SFO");
   });
 
   it("payout records a Sepolia USDC stub credit", async () => {

@@ -46,7 +46,7 @@ The leftover **memory USD pot** is a labeled **demo fallback**, not the locked p
 
 **Request:** `FlightLookup { query: FlightQuery, mode: "demo" \| "live" }`
 
-**Response:** `FlightLookupResult` — snapshot + `flightKey` (`UA472|2026-09-12|EWR`) or `NOT_FOUND`.
+**Response:** `FlightLookupResult` — snapshot + `flightKey` (`UA837|2026-09-19|SFO`) or `NOT_FOUND`.
 
 **Errors:** `NOT_FOUND`. Live mode without `AVIATIONSTACK_KEY` is `NOT_FOUND` with a config reason (not a traveler-facing chain error).
 
@@ -74,11 +74,11 @@ Premium and payout are **USDC** on World Chain Sepolia (quoted in USD cents, set
 | takeoff | **$14** | **$100** | **$150** | **$200** |
 | arrival | **$9** | **$100** | **$150** | **$200** |
 
-UA472 Day-1 default (arrival / 60) is **$9 / $200**. Same flight takeoff / 60 is **$14 / $200**. Send these to `lib/usdc`, not to Hedera and not to the Redis leftover pot.
+UA837 SFO–NRT default (arrival / 60) is **$9 / $200**. Same flight takeoff / 60 is **$14 / $200**. Send these to `lib/usdc`, not to Hedera and not to the Redis leftover pot.
 
 Lookup: `premiumUsdForProduct` / `PREMIUM_USD_BY_PRODUCT` and `payoutUsdForMinutesLate` / `PAYOUT_USD_BY_MINUTES_LATE` from `@/lib/domain`. Amount helpers: `centsToUsdcUnits` / `usdcUnitsToCents` from `@/lib/usdc` (`$9` = `900` cents = `9_000_000` units).
 
-**Underwriting (Financial Research, version `2026-09-12.eng-lock.v1`):** constants in [`docs/pricing/rails-pricing-constants.json`](./pricing/rails-pricing-constants.json) and [`docs/pricing/README.md`](./pricing/README.md). `TARGET_LAMBDA = 1.45`. Refuse `UNDERWRITE_REJECT` when flight-level `p_hat` exceeds the listing cap for `(product, minutesLate)`. UA472 uses `clean_demo_prior` per τ (`p30=0.08`, `p45=0.05`, `p60=0.035`) so the FOMO demo still quotes. US pool-average p (~18%/14%/11%) is underwater — fixture `WN1818` refuses. τ stays internal; UI-facing configure is still `minutesLate` 30\|45\|60.
+**Underwriting (Financial Research, version `2026-09-12.eng-lock.v1`):** constants in [`docs/pricing/rails-pricing-constants.json`](./pricing/rails-pricing-constants.json) and [`docs/pricing/README.md`](./pricing/README.md). `TARGET_LAMBDA = 1.45`. Refuse `UNDERWRITE_REJECT` when flight-level `p_hat` exceeds the listing cap for `(product, minutesLate)`. UA837 uses `clean_demo_prior` per τ (`p30=0.08`, `p45=0.05`, `p60=0.035`) so the FOMO demo still quotes. US pool-average p (~18%/14%/11%) is underwater — fixture `WN1818` refuses. Domestic `UA472` is a second clean fixture, not the hero. τ stays internal; UI-facing configure is still `minutesLate` 30\|45\|60.
 
 **CUTOFF:** demo **6h** before STD (Day-1 was 8h). Live default **4h**. **Inventory:** demo **5** stubs (`HOUSE_MAX_OPEN_PER_FLIGHT`); live default **10**. **EXPOSURE_CAP:** refusal type + portfolio constants only — route check is TODO.
 

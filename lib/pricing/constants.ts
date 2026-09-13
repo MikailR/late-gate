@@ -70,7 +70,7 @@ export const P_MAX_AT_TARGET_LAMBDA: Record<StubProduct, Record<MinutesLate, num
  * Recommended clean FOMO demo prior per τ (minutesLate).
  * House EV at locked π: Takeoff +$6/+6.5/+7; Arrival +$1/+1.5/+2.
  * Arrival sits slightly above conservative p_max; the approved prior is what
- * the UA472 demo lists so the FOMO path still quotes.
+ * the UA837 SFO–NRT demo lists so the FOMO path still quotes.
  */
 export const CLEAN_DEMO_PRIOR_BY_MINUTES_LATE: Record<MinutesLate, number> = {
   30: 0.08,

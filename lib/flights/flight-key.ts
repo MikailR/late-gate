@@ -1,6 +1,6 @@
 import type { FlightQuery } from "./types";
 
-/** `carrier + flightNumber + serviceDate + origin` → `UA472|2026-09-12|EWR` */
+/** `carrier + flightNumber + serviceDate + origin` → `UA837|2026-09-19|SFO` */
 export function buildFlightKey(
   carrier: string,
   flightNumber: string,
